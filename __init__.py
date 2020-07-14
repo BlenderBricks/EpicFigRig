@@ -404,9 +404,9 @@ class AutoRig(bpy.types.Operator):
         for fig in selected_objects:
 
             #CHILD_LEG
-            for num in child_leg:
+            for num in child_leg_single:
                 if num in fig.data.name:
-                    parent("Torso", '["LLegSmear"]')
+                    parent("Torso", False, '["LLegSmear"]')
                     bpy.context.object.data.bones["RightFootIK"].hide = True
                     bpy.context.object.data.bones["LeftFootIK"].hide = True
                     bpy.context.object.data.bones["RightLeg"].hide = True
