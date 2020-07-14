@@ -1277,8 +1277,6 @@ class SmearSlider(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.prop(context.active_object.data, '["SmearsTest"]', slider=True)
-        row = layout.row()
         row.prop(context.active_object.data, '["LLegSmear"]', slider=True)
         row = layout.row()
         row.prop(context.active_object.data, '["RLegSmear"]', slider=True)
