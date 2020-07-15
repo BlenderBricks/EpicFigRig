@@ -291,6 +291,11 @@ class AutoRig(bpy.types.Operator):
             object_name = "The EpicFigRig"
             bpy.ops.wm.append(filename = object_name, directory = path)
 
+        def append_cape():
+            path = addon_dirc + "/Cape_Rig.blend/Collection/"
+            object_name = "CapeRig"
+            bpy.ops.wm.append(filename = object_name, directory = path)
+
         leg_l = ["3817", "20926", "24083", "37364p2"]
         leg_r = ["3816", "20932", "24082", "37364p1", "2532"]
         head_epic = ["24581", "3626", "28621", "94590", "28650", "28649", "26683", "93248",
@@ -324,7 +329,7 @@ class AutoRig(bpy.types.Operator):
         "65072", "93059", "26007", "98128", "25407", "25742", "25743", "25748", "25113", "25114",
         "28679", "30668", "96204", "18984", "90388", "24073", "19861", "90392", "98366", "25978",
         "15404", "98378", "22425", "13792", "13787", "11265", "30172", "27955", "37038", "10164",
-        "34704", "54001", "52684", "93557", "65532", "30926"]
+        "34704", "54001", "52684", "93557", "65532"]
 
         head_clothing_accessories = ["91190", "64647", "30126", "98379", "12886", "33322",
         "25974", "14045", "25634", "13665", "24131", "44553", "41944", "54568", "87696",
@@ -469,6 +474,50 @@ class AutoRig(bpy.types.Operator):
                 if num in fig.data.name:
                     parent("Head Accessory", False, '["LLegSmear"]')
             
+            if "50231" in fig.data.name:
+                append_cape()
+                rigcape = bpy.data.objects['CapeRig']
+                rigcape.location = fig.location
+
+                LFarm = rigcape.pose.bones['LL'].constraints['Transformation']
+
+                LFarm.target = rig
+                LFarm.subtarget = "Left Arm"
+
+                LFarm2 = rigcape.pose.bones['LL'].constraints['Transformation.001']
+
+                LFarm2.target = rig
+                LFarm2.subtarget = "Left Arm Socket Control"
+
+                
+                RFarm = rigcape.pose.bones['RR'].constraints['Transformation']
+
+                RFarm.target = rig
+                RFarm.subtarget = "Right Arm"
+
+                RFarm2 = rigcape.pose.bones['RR'].constraints['Transformation.001']
+
+                RFarm2.target = rig
+                RFarm2.subtarget = "Right Arm Socket Control"
+
+                bpy.data.objects['Cape'].material_slots[0].material = fig.material_slots[0].material
+
+                bpy.ops.object.select_all(action='DESELECT')
+                fig.select_set(True)
+                bpy.context.view_layer.objects.active = fig
+                bpy.ops.object.delete() 
+                fig = rigcape
+                parent("Torso Rock", False, '["LLegSmear"]')
+
+                bpy.data.objects['Cape'].name = 'FinishedCape'
+                bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
+                bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
+                bpy.data.collections['ShapesBones'].hide_viewport = True
+                bpy.data.collections['ShapesBones'].hide_render = True
+                bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
+
+
+
             #HAND
             for num in hand_epic:
                 if num in fig.data.name:
