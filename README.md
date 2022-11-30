@@ -6,7 +6,11 @@ This is the official github for BlenderBricks's EpicFigRig. Shown in the video b
 JabLab Branch Changelog:
 
 Fixed Head Bone Size Control
+
 Added Invert Arm Sliders
+
 Added Mirror Arm Sliders
+
 Adding FK to IK Snapping for Legs
+
 Changed how the add-on appends Child Rigs
