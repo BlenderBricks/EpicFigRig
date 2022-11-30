@@ -14,13 +14,13 @@
 #add-on info
 
 bl_info = {
-    "name": "The EpicFigRig",
-    "author": "Jambo, Owenator Productions, Golden Ninja Ben, IX Productions and Citrine's Animations",
-    "version": (1, 0, 2),
+    "name": "The EpicFigRig - JabLab Version",
+    "author": "Jambo, Owenator Productions, Golden Ninja Ben, IX Productions, JabLab, and Citrine's Animations",
+    "version": (1, 0),
     "blender": (2, 83, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "An Epic Minifigure Rig",
-    "wiki_url": "",
+    "wiki_url": "https://github.com/BlenderBricks/EpicFigRig/tree/jablab-releases",
     "category": "Animation",
 }
 
@@ -30,6 +30,7 @@ import os
 import bpy, mathutils
 from bpy.props import BoolProperty
 from bpy.types import PropertyGroup, Panel, Scene
+import addon_utils
 
 addon_dirc = os. path .dirname (os .path .realpath (__file__))
 #PANELS
@@ -88,9 +89,8 @@ class EpicButtons(bpy.types.Panel):
         row = layout.row()
         row.operator('rig.reset')
         row = layout.row()
-        row.operator('snap.masterbone')
-
-        
+        row.operator('snap.masterbone') 
+       
 class RigSettings(bpy.types.Panel):
     
     bl_label = "Rig Settings"
@@ -148,16 +148,42 @@ class RigSettings(bpy.types.Panel):
                 row = self.layout.row()
                 sub = row.row()
                 sub.prop(context.active_object.data, '["IK Stick"]', slider=True)
+
             row = layout.row()
             sub = row.row()
             row = layout.row()
             row.prop(context.active_object.data, '["LegIK"]', slider=True)
             row = layout.row()
+#            row.operator('reset_the.snapping')
+#            row = layout.row()
+            if bpy.data.armatures[bpy.context.object.data.name]["LegIK"] == 0:
+                sub.enabled = True
+                row = self.layout.row()
+                sub = row.row()
+                row.operator('fk_to.ik')
+                row = layout.row()
+
+            else:
+                sub.enabled == True
+                row = self.layout.row()
+                sub = row.row()
+                row.operator('ik_to.fk')
+                row = layout.row()
+
+            sub = row.row()
+            row = layout.row()
             row.prop(context.active_object.data, '["Head Accessory Bone Size"]', slider=True)
             row = layout.row()
             row.prop(context.active_object.data, '["Head Bone Size"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["LepinHands"]', slider=True)
+            row.prop(context.active_object.data, '["Lepin Hands"]', slider=True)
+            row = layout.row()
+            row.prop(context.active_object.data, '["Invert Right Arm"]', slider=True)
+            row.prop(context.active_object.data, '["Invert Left Arm"]', slider=True)
+            row = layout.row()
+            row.prop(context.active_object.data, '["Mirror Right Arm"]', slider=True)
+            row.prop(context.active_object.data, '["Mirror Left Arm"]', slider=True)
+
 
 #BUTTONS 
 
@@ -281,13 +307,8 @@ class AutoRig(bpy.types.Operator):
             
             bpy.data.objects.remove(empty)
 
-        def append_normal():
+        def append_rig():
             path = addon_dirc + "/Append.blend/Collection/"
-            object_name = "The EpicFigRig"
-            bpy.ops.wm.append(filename = object_name, directory = path)
-
-        def append_child():
-            path = addon_dirc + "/Append_Child.blend/Collection/"
             object_name = "The EpicFigRig"
             bpy.ops.wm.append(filename = object_name, directory = path)
 
@@ -296,8 +317,8 @@ class AutoRig(bpy.types.Operator):
             object_name = "CapeRig"
             bpy.ops.wm.append(filename = object_name, directory = path)
 
-        leg_l = ["3817", "20926", "24083", "37364p2"]
-        leg_r = ["3816", "20932", "24082", "37364p1", "2532"]
+        leg_l = ["3817", "20926", "24083", "37364p2", "37366"]
+        leg_r = ["3816", "20932", "24082", "37364p1", "2532", "37365"]
         head_epic = ["24581", "3626", "28621", "94590", "28650", "28649", "26683", "93248",
         "30480", "30378", "98103", "64804", "92743", "1735", "24601", "24629", "98365", 
         "98384", "93068", "19729", "20613", "41201", "18828", "65431"]
@@ -305,7 +326,7 @@ class AutoRig(bpy.types.Operator):
         arm_l = ["16001", "3819", "62691"]
         torso = ["3814"]
         hand_epic = ["3820", "2531", "9532"]
-        child_leg = ["37364","16709", "37679", "41879"]
+        child_leg = ["37365", "37366" "16709", "37679", "41879"]
         child_leg_single = ["16709", "37679", "41879"]
         head_accessory = ["64798", "64807", "85974", "887990", "87991", "87995", "88283", "88286", "92081", "92083", "93217", "93562", "93563", "18228", "99240", "11908", "99930", "99248",
         "98726", "10301", "10166", "10048", "10048", "10055", "10066", "11256", "12893", "13768", "13251", "13664", "13785", "13750", "13765", "13766", "15443", "15427", "15491", "15500",
@@ -352,28 +373,12 @@ class AutoRig(bpy.types.Operator):
         for fig in bpy.context.selected_objects:
             
             for num in child_leg:
-                if num in fig.data.name:
-                #if "37364" in fig.data.name:
+                #if num in fig.data.name:
+                if num[:5] in fig.data.name:
                     child = True
 
-
-        if child == True:
-            append_child()
-            
-        else:
-            append_normal()
-
+        append_rig()      
         
-
-        """ 
-        if 1 == 1 in selected_objects:
-            append_child()
-        else:
-            append_normal()
-        """
-        
-
-
         all_objects = bpy.data.objects
         rig = all_objects['Rig']
         arma = bpy.data.objects['Rig']
@@ -564,7 +569,7 @@ class AutoRig(bpy.types.Operator):
 
                         target.id = b
 
-                        target.data_path = '["LepinHands"]'
+                        target.data_path = '["Lepin Hands"]'
 
                         driver.expression = "hide"
 
@@ -587,7 +592,7 @@ class AutoRig(bpy.types.Operator):
 
                         target.id = b
 
-                        target.data_path = '["LepinHands"]'
+                        target.data_path = '["Lepin Hands"]'
 
                         driver.expression = "hide"
                     else:
@@ -613,7 +618,7 @@ class AutoRig(bpy.types.Operator):
 
                         target.id = b
 
-                        target.data_path = '["LepinHands"]'
+                        target.data_path = '["Lepin Hands"]'
 
                         driver.expression = "hide"
 
@@ -636,7 +641,7 @@ class AutoRig(bpy.types.Operator):
 
                         target.id = b
 
-                        target.data_path = '["LepinHands"]'
+                        target.data_path = '["Lepin Hands"]'
 
                         driver.expression = "hide"
                         
@@ -657,6 +662,14 @@ class AutoRig(bpy.types.Operator):
         objectsfsmear["RHBool"].name = "FinishedRHBool"
         objectsfsmear["RLBool"].name = "FinishedRLBool"
         
+        #Turn Rig into Child
+        rig.select_set(True)
+        if child == True:
+            bpy.context.object.data["Child"] = 1
+
+        else:
+
+            bpy.context.object.data["Child"] = 0
 
         return {'FINISHED'}
 
@@ -1313,6 +1326,208 @@ class SnapHead(bpy.types.Operator):
             
         return {'FINISHED'}
 
+class iktofk(bpy.types.Operator):
+    
+    bl_label = "Snap IK to FK"
+    bl_idname = 'ik_to.fk'
+    
+    import bpy
+    import addon_utils
+
+    if addon_utils.check("space_view3d_copy_attributes") == (False, False):
+        addon_utils.enable("space_view3d_copy_attributes")
+        addon_utils.check("space_view3d_copy_attributes")
+
+    def execute(self, context):
+        if (bpy.context.mode == "POSE"):
+
+            for obj in bpy.context.selected_objects:
+                    
+                if obj.type == 'ARMATURE':
+                    global selected_armature
+                    selected_armature = obj.name
+
+            bpy.context.object.data["LegIK"] = 1
+            bpy.context.object.data["SnapVis"] = 1
+            bpy.context.view_layer.objects.active.data.bones["LeftLeg"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftLegSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftFootIK"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftFootIKSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightLeg"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightLegSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightFootIK"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightFootIKSnap"].select = True
+
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.context.view_layer.objects.active.data.keyframe_insert(data_path='["LegIK"]')
+           
+            bpy.ops.pose.select_all(action='DESELECT')
+    
+            #Copies rotation data from main bone to hidden bones
+            
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["LeftLeg"].bone
+            bpy.context.view_layer.objects.active.data.bones["LeftLegSnap"].select = True
+            bpy.ops.pose.copy_pose_vis_rot()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightLeg"].bone
+            bpy.context.view_layer.objects.active.data.bones["RightLegSnap"].select = True
+            bpy.ops.pose.copy_pose_vis_rot()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+            
+            #turns off IK contstaint
+            bpy.context.object.data["LegIK"] = 0
+            bpy.context.view_layer.objects.active.data.keyframe_insert(data_path='["LegIK"]')
+
+            #copies data from hidden bones to main bone
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["LeftLegSnap"].bone
+            bpy.context.view_layer.objects.active.data.bones["LeftLeg"].select = True
+            bpy.ops.pose.copy_pose_vis_rot()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightLegSnap"].bone
+            bpy.context.view_layer.objects.active.data.bones["RightLeg"].select = True
+            bpy.ops.pose.copy_pose_vis_rot()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.context.object.data["SnapVis"] = 0
+            bpy.ops.pose.select_all(action='DESELECT')
+            
+            #turns off copy menu if you didn't have it on
+#            if addon_utils.check("space_view3d_copy_attributes") == (False, True):
+#                addon_utils.disable("space_view3d_copy_attributes")
+#                addon_utils.check("space_view3d_copy_attributes")
+
+        else:
+            self.report({'ERROR'}, "Must be in Pose Mode")
+           
+        return {'FINISHED'}
+
+class fktoik(bpy.types.Operator):
+    
+    bl_label = "Snap FK to IK"
+    bl_idname = 'fk_to.ik'
+
+    import bpy
+    import addon_utils
+
+    if addon_utils.check("space_view3d_copy_attributes") == (False, False):
+        addon_utils.enable("space_view3d_copy_attributes")
+        addon_utils.check("space_view3d_copy_attributes")
+
+    def execute(self, context):
+        if (bpy.context.mode == "POSE"):
+
+            for obj in bpy.context.selected_objects:
+                    
+                if obj.type == 'ARMATURE':
+                    global selected_armature
+                    selected_armature = obj.name
+
+            bpy.context.object.data["SnapVis"] = 1
+            bpy.context.view_layer.objects.active.data.bones["LeftLeg"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftLegSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftFootIK"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftFootIKSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightLeg"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightLegSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightFootIK"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightFootIKSnap"].select = True
+            
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.context.view_layer.objects.active.data.keyframe_insert(data_path='["LegIK"]')
+           
+            bpy.ops.pose.select_all(action='DESELECT')
+    
+            #Copies rotation data from main bone to hidden bones
+
+            bpy.context.view_layer.objects.active.data.bones["RightLegSnap"].select = True
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightLeg"].bone
+            bpy.ops.pose.copy_pose_vis_rot()
+            bpy.ops.pose.copy_pose_vis_loc()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["LeftLegSnap"].bone
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["LeftLeg"].bone
+            bpy.ops.pose.copy_pose_vis_rot()
+            bpy.ops.pose.copy_pose_vis_loc()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            
+            #turns on IK contstaint
+            bpy.context.object.data["LegIK"] = 1
+            bpy.context.view_layer.objects.active.data.keyframe_insert(data_path='["LegIK"]')
+
+            #copies data from hidden bones to main bone
+
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightFootIK"].bone
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightFootIKSnap"].bone
+            bpy.ops.pose.copy_pose_vis_loc()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["LeftFootIK"].bone
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["LeftFootIKSnap"].bone
+            bpy.ops.pose.copy_pose_vis_loc()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            #same code as before, just repeated because theres issues with the first time and this fixes it i guess?
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightFootIK"].bone
+            bpy.context.object.data.bones.active = bpy.data.objects[selected_armature].pose.bones["RightFootIKSnap"].bone
+            bpy.ops.pose.copy_pose_vis_loc()
+            bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
+            bpy.ops.pose.select_all(action='DESELECT')
+
+            #turns off copy menu if you didn't have it on
+#            if addon_utils.check("space_view3d_copy_attributes") == (False, True):
+#                addon_utils.disable("space_view3d_copy_attributes")
+#                addon_utils.check("space_view3d_copy_attributes")
+
+            bpy.context.object.data["SnapVis"] = 0
+            bpy.ops.pose.select_all(action='DESELECT')
+
+        else:
+            self.report({'ERROR'}, "Must be in Pose Mode")
+           
+        return {'FINISHED'}
+
+"""
+class resetsnapping(bpy.types.Operator):
+    
+    bl_label = "Reset Snapping"
+    bl_idname = 'reset_the.snapping'
+
+    def execute(self, context):
+        if (bpy.context.mode == "POSE"):
+
+            for obj in bpy.context.selected_objects:
+                    
+                if obj.type == 'ARMATURE':
+                    global selected_armature
+                    selected_armature = obj.name
+
+            bpy.context.object.data["SnapVis"] = 1
+            bpy.ops.pose.select_all(action='DESELECT')
+            bpy.context.view_layer.objects.active.data.bones["LeftLegSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["LeftFootIKSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightLegSnap"].select = True
+            bpy.context.view_layer.objects.active.data.bones["RightFootIKSnap"].select = True
+            bpy.ops.anim.keyframe_clear_v3d()
+            bpy.context.object.data["SnapVis"] = 0
+            bpy.ops.pose.select_all(action='DESELECT')
+
+        else:
+            self.report({'ERROR'}, "Must be in Pose Mode")
+           
+        return {'FINISHED'}
+"""
 class SmearSlider(bpy.types.Panel):
     
     bl_label = "Smears"
@@ -1366,6 +1581,12 @@ def register():
 
     bpy.utils.register_class(AutoRig)
 
+    bpy.utils.register_class(iktofk)
+
+    bpy.utils.register_class(fktoik)
+
+#    bpy.utils.register_class(resetsnapping)
+
 def unregister():
 
     bpy.utils.unregister_class(EpicFigRigPanel)
@@ -1394,7 +1615,11 @@ def unregister():
 
     bpy.utils.unregister_class(AutoRig)
 
-    
+    bpy.utils.unregister_class(iktofk)
+
+    bpy.utils.unregister_class(fktoik)
+
+#    bpy.utils.unregister_class(resetsnapping)
     
 if __name__ == "__main__":
     register()
