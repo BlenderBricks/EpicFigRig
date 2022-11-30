@@ -13,4 +13,4 @@ Added Arm Mirror sliders
 
 Added FK to IK Snapping for Legs
 
-Changed the way the add-on imports Child Rig
+Changed the way the add-on imports Child Rigs
