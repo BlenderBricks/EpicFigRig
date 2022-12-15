@@ -16,8 +16,8 @@
 bl_info = {
     "name": "The EpicFigRig - JabLab Version",
     "author": "Jambo, Owenator Productions, Golden Ninja Ben, IX Productions, JabLab, and Citrine's Animations",
-    "version": (1, 0, 1),
-    "blender": (2, 83, 0),
+    "version": (1, 0, 5),
+    "blender": (3, 3, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "An Epic Minifigure Rig",
     "wiki_url": "https://github.com/BlenderBricks/EpicFigRig/tree/jablab-releases",
