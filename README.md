@@ -47,6 +47,7 @@ Version 1.1
   - At the moment, you can only rig one cape per blend file. You can get around this by rigging each minifgure in a seperate file, then append the finished rig into the final .blend
 
 - Modified UI
+  - Moved more uncommon features into the "Advanced" tab
 
 - Made roadmap document public, added in add-on underneath user info document. 
 
