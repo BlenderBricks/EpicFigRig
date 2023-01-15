@@ -44,7 +44,7 @@ Version 1.1
 - Other Bug Fixes
 
 - Increased the Number of Capes the add-on will autorig.
-  - At the moment, you can only rig one cape per blend file. You can get around this by rigging each minifgure in a seperate file, then append the finished rig into the final .blend
+  - At the moment, you can only rig one cape per blend file. You can get around this by rigging each minifgure in a seperate file, then appending the finished rig into the final .blend
 
 - Modified UI
   - Moved more uncommon features into the "Advanced" tab
