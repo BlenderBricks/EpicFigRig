@@ -37,3 +37,16 @@ Version 1.0.5
 
 - Added two internal locators for animation
 
+Version 1.1
+
+- Fixed Lepin Booleans for 3.4 users
+
+- Other Bug Fixes
+
+- Increased the Number of Capes the add-on will autorig.
+
+- Modified UI
+
+- Made roadmap document public, added in add-on underneath user info document. 
+
+- Removed Herobrine

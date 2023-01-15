@@ -28,7 +28,7 @@ selected_armature = "FinishedRig"
 
 import os
 import bpy, mathutils
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, IntProperty
 from bpy.types import PropertyGroup, Panel, Scene
 import addon_utils
 
@@ -45,9 +45,14 @@ class EpicFigRigPanel(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
+        
         box = layout.box()
         row = box.row()
         row.operator("wm.url_open", text="User Manual", icon= 'URL', emboss= False).url = "https://docs.google.com/document/d/1wWlGkeNHBnmPA1siEARibdjcdEdBDNlHe-tcdELbq8M/edit?usp=sharing"
+        row = layout.row()
+        box = layout.box()
+        row = box.row()
+        row.operator("wm.url_open", text="JabLab Roadmap", icon= 'URL', emboss= False).url = "https://docs.google.com/document/d/1kJMUFe73h4Af69KkrOU4y_3KU6dmt_5DmBlqC_X1Q5E/edit?usp=sharing"
         row = layout.row()
         row.label(text= "Active: Object:")
         #row = layout.row()
@@ -55,19 +60,34 @@ class EpicFigRigPanel(bpy.types.Panel):
         
         row = layout.row()
         row.operator('auto.rig')
+        row = layout.row()
+        row.label(text= "Rig Settings:", icon= 'OPTIONS')
+        row = layout.row()
+        layout = self.layout
+        row = layout.row(align=True)        
+        row.operator('main.tab')
+        row.operator('advanced.tab')
+        row = layout.row()
+
+######MAIN TAB######
 
 class EpicButtons(bpy.types.Panel):
-    
-    bl_label = "Epic Buttons"
+        
     bl_idname = "EPIC_PT_BUTTONS"
+    bl_label = "Epic Buttons"
     bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'EpicFigRig'
     
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 0:
+        if bpy.context.scene.EpicRigTabs == 0:
+            return True
+    
     def draw(self, context):
         layout = self.layout
-
         row = layout.row()
         
         row = layout.row()
@@ -101,6 +121,12 @@ class RigSettings(bpy.types.Panel):
     bl_category = 'EpicFigRig'  
     bl_options = {'DEFAULT_CLOSED'}
     
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 3:
+        if bpy.context.scene.EpicRigTabs == 3:
+            return True
+    
     def draw(self, context):
         #layout = self.layout
         #wm = context.window_manager
@@ -132,26 +158,56 @@ class RigSettings(bpy.types.Panel):
         if check_prop == True:
             sub = row.row()
             row = layout.row()
-            row.prop(context.active_object.data, '["Head Accessory Bone Size"]', slider=True)
+            row.prop(context.active_object.data, '["Head Accessory Bone Scale"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Head Bone Size"]', slider=True)
+            row.prop(context.active_object.data, '["Head Bone Scale"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Head Z Adjust"]', slider=True)
+            row.prop(context.active_object.data, '["Head Bone Transform"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Torso Bone Size"]', slider=True)
+            row.prop(context.active_object.data, '["Torso Bone Scale"]', slider=True)
             row = layout.row()
             row.prop(context.active_object.data, '["Second Master Bone"]', slider=True)
             row = layout.row()
             row.prop(context.active_object.data, '["Locators"]', slider=True)
 
-
-
+class SmearSlider(bpy.types.Panel):
+    
+    bl_label = "Smears"
+    bl_idname = "SMEAR_SLIDER"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'  
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 0:
+        if bpy.context.scene.EpicRigTabs == 0:
+            return True
+        
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(context.active_object.data, '["LLegSmear"]', slider=True)
+        row = layout.row() 
+        row.prop(context.active_object.data, '["RLegSmear"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["LArmSmear"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["RArmSmear"]', slider=True)
 
 class ArmMenu(bpy.types.Panel):
     
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 0:
+        if bpy.context.scene.EpicRigTabs == 0:
+            return True
+                        
     bl_label = "Arm Menu"
     bl_idname = "ARM_MENU"
-    #bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'EpicFigRig'  
@@ -159,8 +215,8 @@ class ArmMenu(bpy.types.Panel):
 
     def draw(self, context):
         #layout = self.layout
-        #wm = context.window_manager
-        
+        #wm = context.window_manager            
+    
         layout = self.layout
         row = layout.row()
         sub = row.row()
@@ -169,14 +225,14 @@ class ArmMenu(bpy.types.Panel):
         #layout.use_property_decorate = True
                 
         for obj in bpy.context.selected_objects:
-               
-                
+                               
             if obj.type == 'ARMATURE':
                 global selected_armature
                 selected_armature = obj.name
                 check_prop = True
             else:
                 check_prop = False
+                
         if check_prop == False:
             row.label(text = "(Select an Armature for Settings)")
             
@@ -197,14 +253,14 @@ class ArmMenu(bpy.types.Panel):
             row.prop(context.active_object.data, '["Lepin Hands"]', slider=True)
             row = layout.row()
             layout.label(text="Left Arm:", icon= 'EVENT_L')
-            
+           
             row = layout.row()
             row.prop(context.active_object.data, '["LeftArmIK"]', slider=True)
-            row = layout.row()
             if bpy.data.armatures[bpy.context.object.data.name]["LeftArmIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('fk_to.ik_larm')
                 row = layout.row()
 
@@ -212,6 +268,7 @@ class ArmMenu(bpy.types.Panel):
                 sub.enabled == True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('ik_to.fk_larm')
                 row = layout.row()
                 row.prop(context.active_object.data, '["IK Arm Socket Lock"]', slider=True)
@@ -227,11 +284,11 @@ class ArmMenu(bpy.types.Panel):
 
             row = layout.row()
             row.prop(context.active_object.data, '["RightArmIK"]', slider=True)
-            row = layout.row()
             if bpy.data.armatures[bpy.context.object.data.name]["RightArmIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('fk_to.ik_rarm')
                 row = layout.row()
 
@@ -239,11 +296,13 @@ class ArmMenu(bpy.types.Panel):
                 sub.enabled == True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('ik_to.fk_rarm')
                 row = layout.row()
                 row.prop(context.active_object.data, '["IK Arm Socket Lock"]', slider=True)
                 row = layout.row()
 
+            row = layout.row()
             row.prop(context.active_object.data, '["Invert Right Arm"]', slider=True)
             row = layout.row()
             row.prop(context.active_object.data, '["Mirror Right Arm"]', slider=True)
@@ -255,11 +314,17 @@ class LegMenu(bpy.types.Panel):
     
     bl_label = "Leg Menu"
     bl_idname = "LEG_MENU"
-    #bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'EpicFigRig'  
     bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 0:
+        if bpy.context.scene.EpicRigTabs == 0:
+            return True
 
     def draw(self, context):
         #layout = self.layout
@@ -293,11 +358,11 @@ class LegMenu(bpy.types.Panel):
             sub = row.row()
             row = layout.row()
             row.prop(context.active_object.data, '["LeftLegIK"]', slider=True)
-            row = layout.row()
             if bpy.data.armatures[bpy.context.object.data.name]["LeftLegIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('fk_to.ik_lleg')
                 row = layout.row()
 
@@ -305,6 +370,7 @@ class LegMenu(bpy.types.Panel):
                 sub.enabled == True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('ik_to.fk_lleg')
                 row = layout.row()
                   
@@ -319,11 +385,11 @@ class LegMenu(bpy.types.Panel):
             layout.label(text="Right Leg:", icon= 'EVENT_R')
             row = layout.row()
             row.prop(context.active_object.data, '["RightLegIK"]', slider=True)
-            row = layout.row()
             if bpy.data.armatures[bpy.context.object.data.name]["RightLegIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('fk_to.ik_rleg')
                 row = layout.row()
 
@@ -331,24 +397,80 @@ class LegMenu(bpy.types.Panel):
                 sub.enabled == True
                 row = self.layout.row()
                 sub = row.row()
+                row = layout.row(align=True)
                 row.operator('ik_to.fk_rleg')
                 row = layout.row()
 
+            row = layout.row()
             row.prop(context.active_object.data, '["Invert Right Leg"]', slider=True)
             row = layout.row()
             row.prop(context.active_object.data, '["RLegSmear"]', slider=True)
             row = layout.row()
 
+######ADVANCED TAB######
+
+class BoneAdjust(bpy.types.Panel):
+    
+    bl_label = "Bone Adjustments"
+    bl_idname = "BONE_ADJUST"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'  
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 1:
+        if bpy.context.scene.EpicRigTabs == 1:
+            return True
+        
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(context.active_object.data, '["Head Accessory Bone Scale"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["Head Bone Scale"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["Head Bone Transform"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["Torso Bone Scale"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["Leg Height"]', slider=True)
+        row = layout.row()
+        
+class BoneVis(bpy.types.Panel):
+    
+    bl_label = "Bone Visibility"
+    bl_idname = "BONE_VISIBILITY"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'  
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 1:
+        if bpy.context.scene.EpicRigTabs == 1: 
+            return True
+        
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(context.active_object.data, '["Second Master Bone"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.data, '["Locators"]', slider=True)
+        
 #BUTTONS 
 
 #AutoRig
 class AutoRig(bpy.types.Operator):
-    
-    bl_label = "Rig Selected Minifigure"
+    """Autorig Selected Minifgure - YOU MUST DELETE THE EMPTY!"""
+    bl_label = "  Rig Selected Minifigure  "
     bl_idname = 'auto.rig'
     
-    def execute(self, context):
-        
+    def execute(self, context):        
         
         child = True
 
@@ -470,6 +592,8 @@ class AutoRig(bpy.types.Operator):
             path = addon_dirc + "/Cape_Rig.blend/Collection/"
             object_name = "CapeRig"
             bpy.ops.wm.append(filename = object_name, directory = path)
+            #path = addon_dirc + "/Cape_Rig.blend/Object/"
+            #bpy.ops.wm.append(filename = currentcape, directory = path)
 
         leg_l = ["3817", "20926", "24083", "37364p2", "37366"]
         leg_r = ["3816", "20932", "24082", "37364p1", "2532", "37365"]
@@ -515,7 +639,10 @@ class AutoRig(bpy.types.Operator):
 
         head_clothing_visors = ["2447", "41805", "23318", "89159", "30170", "6119", "30090", 
         "15446", "2594", "22393", "22395", "22400", "22401", "22394", "23851", "28976",]
-
+        
+        capes = ["20547","23901","29453","34721","50231","50525","56630","56630","65384","99464"]
+        
+        #capes_apend = ["20547uv.001.append","23901uv.001.append","29453uv.001.append","34721uv.001.append","50231uv.001.append","50525uv.001.append","56630uv.001.append","56630uv.002.append","65384uv.001.append","99464uv.001.append"] 
 
         selected_objects = bpy.context.selected_objects
         loc = bpy.context.selected_objects[0]
@@ -619,8 +746,8 @@ class AutoRig(bpy.types.Operator):
             for num in torso_gear:
                 if num in fig.data.name:
                     parent("Torso Rock", False, '["LLegSmear"]')
-                    bpy.context.object.data["Head Z Adjust"] = 1.5
-                    bpy.context.object.data["Torso Bone Size"] = .75
+                    bpy.context.object.data["Head Bone Transform"] = 1.5
+                    bpy.context.object.data["Torso Bone Scale"] = .75
 
             #TORSO
             for num in torso:
@@ -648,8 +775,8 @@ class AutoRig(bpy.types.Operator):
             for num in head_accessory:
                 if num in fig.data.name:
                     parent("Head Accessory", False, '["LLegSmear"]')
-                    bpy.context.object.data["Head Bone Size"] = .85
-                    bpy.context.object.data["Head Accessory Bone Size"] = 1.0
+                    bpy.context.object.data["Head Bone Scale"] = .85
+                    bpy.context.object.data["Head Accessory Bone Scale"] = 1.0
                     break
             
             #HEAD_CLOTHING.ACCESSORIES
@@ -662,51 +789,71 @@ class AutoRig(bpy.types.Operator):
                 if num in fig.data.name:
                     parent("Head Accessory", False, '["LLegSmear"]')
             
-            if "50231" in fig.data.name:
-                append_cape()
-                rigcape = bpy.data.objects['CapeRig']
-                rigcape.location = fig.location
+            #CAPE
+            for num in capes:
+                if num in fig.data.name:
+                    currentcape = fig.data.name + ".append"
+                    append_cape()
+                    rigcape = bpy.data.objects['CapeRig']
+                    rigcape.location = fig.location
 
-                LFarm = rigcape.pose.bones['LL'].constraints['Transformation']
+                    LFarm = rigcape.pose.bones['LL'].constraints['Transformation']
 
-                LFarm.target = rig
-                LFarm.subtarget = "Left Arm"
+                    LFarm.target = rig
+                    LFarm.subtarget = "Left Arm"
 
-                LFarm2 = rigcape.pose.bones['LL'].constraints['Transformation.001']
+                    LFarm2 = rigcape.pose.bones['LL'].constraints['Transformation.001']
 
-                LFarm2.target = rig
-                LFarm2.subtarget = "Left Arm Socket Control"
+                    LFarm2.target = rig
+                    LFarm2.subtarget = "Left Arm Socket Control"
 
-                
-                RFarm = rigcape.pose.bones['RR'].constraints['Transformation']
+                    
+                    RFarm = rigcape.pose.bones['RR'].constraints['Transformation']
 
-                RFarm.target = rig
-                RFarm.subtarget = "Right Arm"
+                    RFarm.target = rig
+                    RFarm.subtarget = "Right Arm"
 
-                RFarm2 = rigcape.pose.bones['RR'].constraints['Transformation.001']
+                    RFarm2 = rigcape.pose.bones['RR'].constraints['Transformation.001']
 
-                RFarm2.target = rig
-                RFarm2.subtarget = "Right Arm Socket Control"
+                    RFarm2.target = rig
+                    RFarm2.subtarget = "Right Arm Socket Control"
 
-                bpy.data.objects['Cape'].material_slots[0].material = fig.material_slots[0].material
+                    bpy.data.objects[currentcape].material_slots[0].material = fig.material_slots[0].material
 
-                bpy.ops.object.select_all(action='DESELECT')
-                fig.select_set(True)
-                bpy.context.view_layer.objects.active = fig
-                bpy.ops.object.delete() 
-                fig = rigcape
-                parent("Torso Rock", False, '["LLegSmear"]')
+                    bpy.ops.object.select_all(action='DESELECT')
+                    fig.select_set(True)
+                    bpy.context.view_layer.objects.active = fig
+                    bpy.ops.object.delete() 
+                    fig = rigcape
+                    parent("Torso Rock", False, '["LLegSmear"]')
+                    
+                    bpy.ops.object.select_all(action='DESELECT')
+                    bpy.context.view_layer.objects.active = None
 
-                bpy.data.objects['Cape'].name = 'FinishedCape'
-                bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
-                bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
-                bpy.data.collections['ShapesBones'].hide_viewport = True
-                bpy.data.collections['ShapesBones'].hide_render = True
-                bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
-
-
-
-            #HAND
+                    bpy.data.objects[currentcape].name = "FinishedCape"
+                    bpy.context.scene.objects["FinishedCape"].select_set(True)
+                    for obj in bpy.context.selected_objects:
+                        bpy.context.view_layer.objects.active = obj
+                    obj = bpy.context.active_object                    
+                    bpy.data.collections['CapeRig'].objects.link(obj)
+                    bpy.data.collections['Cape Appends'].objects.unlink(obj)
+                    bpy.ops.object.select_all(action='DESELECT')
+                                
+                    collection = bpy.data.collections.get('Cape Appends')
+                    for obj in collection.objects:
+                        bpy.data.objects.remove(obj, do_unlink=True)
+    
+                    bpy.data.collections.remove(collection)
+                    
+                    #bpy.data.objects[currentcape].name = 'FinishedCape'
+                    bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
+                    bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
+                    bpy.data.collections['ShapesBones'].hide_viewport = True
+                    bpy.data.collections['ShapesBones'].hide_render = True
+                    bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
+                                            
+                            
+            """#HAND"""
             for num in hand_epic:
                 if num in fig.data.name:
                     
@@ -731,8 +878,9 @@ class AutoRig(bpy.types.Operator):
                     if handname == 'Left Hand':
                         fig.select_set(True)
                         bpy.context.view_layer.objects.active = fig
-                        bpy.ops.object.modifier_add(type='BOOLEAN')
+                        bpy.context.active_object.modifiers.new("Boolean", 'BOOLEAN')
                         bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["RLBool"]
+                        bpy.context.object.modifiers["Boolean"].solver = 'FAST'
                         fig.select_set(False)
 
                         obj = bpy.data.objects[fig.name]
@@ -781,8 +929,9 @@ class AutoRig(bpy.types.Operator):
                     else:
                         fig.select_set(True)
                         bpy.context.view_layer.objects.active = fig
-                        bpy.ops.object.modifier_add(type='BOOLEAN')
+                        bpy.context.active_object.modifiers.new("Boolean", 'BOOLEAN')
                         bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["RHBool"]
+                        bpy.context.object.modifiers["Boolean"].solver = 'FAST'
                         
                         obj = bpy.data.objects[fig.name]
                         dwive = obj.modifiers["Boolean"].driver_add("show_viewport")
@@ -837,7 +986,11 @@ class AutoRig(bpy.types.Operator):
         collections["BoneShapes"].name = "FinishedBoneShapes"
 
         objectsfsmear = bpy.data.objects
-
+        
+        #fix Lepin Hands
+        bpy.context.view_layer.objects['RHBool'].hide_viewport = True
+        bpy.context.view_layer.objects['RLBool'].hide_viewport = True
+        
         objectsfsmear["LlegS"].name = "FinishedLlegS"
         objectsfsmear["RlegS"].name = "FinishedRlegS"
         objectsfsmear["LarmS"].name = "FinishedLarmS"
@@ -848,11 +1001,11 @@ class AutoRig(bpy.types.Operator):
         #Turn Rig into Child
         rig.select_set(True)
         if child == True:
-            bpy.context.object.data["Child"] = 1
+            bpy.context.object.data["Leg Height"] = 2.0
 
         else:
 
-            bpy.context.object.data["Child"] = 0
+            bpy.context.object.data["Leg Height"] = 0.0
             
         #create global varibles for iksnap
         global mainfkbone
@@ -872,7 +1025,7 @@ class AutoRig(bpy.types.Operator):
 
 #Master Bone   
 class ResetMasterBone(bpy.types.Operator):
-    
+    """Reverts Masterbone to Default Values"""
     bl_label = "Reset Master Bone"
     bl_idname = 'rig.reset'
     
@@ -1009,7 +1162,6 @@ class ResetMasterBone(bpy.types.Operator):
         return {'FINISHED'}
 
 class SnapMasterBone(bpy.types.Operator):
-    
     bl_label = "Snap Master Bone"
     bl_idname = 'snap.masterbone'
     
@@ -1109,7 +1261,7 @@ class SnapMasterBone(bpy.types.Operator):
 
 #Pivot
 class SwitchPivottoLeft(bpy.types.Operator):
-    
+    """Changes the Pivot Bone to the Left Leg"""
     bl_label = "Left"
     bl_idname = 'pivot.left'
     
@@ -1181,7 +1333,7 @@ class SwitchPivottoLeft(bpy.types.Operator):
         return {'FINISHED'}
 
 class SwitchPivottoRight(bpy.types.Operator):
-     
+    """Changes the Pivot Bone to the Right Leg""" 
     bl_label = "Right"
     bl_idname = 'pivot.right'
     
@@ -1249,7 +1401,7 @@ class SwitchPivottoRight(bpy.types.Operator):
         return {'FINISHED'}
 
 class ResetPivot(bpy.types.Operator):
-    
+    """Reverts Pivot Bone to Default Values""" 
     bl_label = "Reset Pivot"
     bl_idname = 'reset.pivot'
     
@@ -1297,7 +1449,7 @@ class ResetPivot(bpy.types.Operator):
 
 #Snap Bones  
 class SnapRight(bpy.types.Operator):
-    
+    """Snap Selected Accessory to the Right Hand""" 
     bl_label = "Right Hand"
     bl_idname = 'snap_right.add'
     
@@ -1373,7 +1525,7 @@ class SnapRight(bpy.types.Operator):
         return {'FINISHED'}
     
 class SnapLeft(bpy.types.Operator):
-    
+    """Snap Selected Accessory to the Left Hand"""
     bl_label = "Left Hand"
     bl_idname = 'snap_left.add'
     
@@ -1447,7 +1599,7 @@ class SnapLeft(bpy.types.Operator):
         return {'FINISHED'}
     
 class SnapHead(bpy.types.Operator):
-    
+    """Snap Selected Accessory to the Head"""
     bl_label = "Head"
     bl_idname = 'snap_head.add'
     
@@ -1567,10 +1719,10 @@ def iktofk():
     bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
     bpy.ops.pose.select_all(action='DESELECT')
 
-     #turns off copy menu if you didn't have it on
-#    if addon_utils.check("space_view3d_copy_attributes") == (False, True):
-#    addon_utils.disable("space_view3d_copy_attributes")
-#    addon_utils.check("space_view3d_copy_attributes")
+    #turns off copy menu if you didn't have it on
+    if addon_utils.check("space_view3d_copy_attributes") == (False, True):
+        addon_utils.disable("space_view3d_copy_attributes")
+        addon_utils.check("space_view3d_copy_attributes")
 
     bpy.context.object.data["SnapVis"] = 0
     bpy.ops.pose.select_all(action='DESELECT')         
@@ -1618,16 +1770,16 @@ def fktoik():
     bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
     bpy.ops.pose.select_all(action='DESELECT')
 
-     #turns off copy menu if you didn't have it on
-#    if addon_utils.check("space_view3d_copy_attributes") == (False, True):
-#    addon_utils.disable("space_view3d_copy_attributes")
-#    addon_utils.check("space_view3d_copy_attributes")
+    #turns off copy menu if you didn't have it on
+    if addon_utils.check("space_view3d_copy_attributes") == (False, True):
+        addon_utils.disable("space_view3d_copy_attributes")
+        addon_utils.check("space_view3d_copy_attributes")
 
     bpy.context.object.data["SnapVis"] = 0
     bpy.ops.pose.select_all(action='DESELECT')
 
 class iktofkRleg(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Right Leg to FK"""
     bl_label = "Snap IK to FK"
     bl_idname = 'ik_to.fk_rleg'
 
@@ -1666,7 +1818,7 @@ class iktofkRleg(bpy.types.Operator):
     
 
 class iktofkLleg(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Left Leg to FK"""
     bl_label = "Snap IK to FK"
     bl_idname = 'ik_to.fk_lleg'
     
@@ -1704,7 +1856,7 @@ class iktofkLleg(bpy.types.Operator):
         return {'FINISHED'}
 
 class iktofkLarm(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Left Arm to FK"""
     bl_label = "Snap IK to FK"
     bl_idname = 'ik_to.fk_larm'
     
@@ -1742,7 +1894,7 @@ class iktofkLarm(bpy.types.Operator):
         return {'FINISHED'}
 
 class iktofkRarm(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Right Arm to FK"""
     bl_label = "Snap IK to FK"
     bl_idname = 'ik_to.fk_rarm'
     
@@ -1780,7 +1932,7 @@ class iktofkRarm(bpy.types.Operator):
         return {'FINISHED'}     
 
 class fktoikRleg(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Right Leg to IK"""
     bl_label = "Snap FK to IK"
     bl_idname = 'fk_to.ik_rleg'
 
@@ -1819,7 +1971,7 @@ class fktoikRleg(bpy.types.Operator):
     
 
 class fktoikLleg(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Left Leg to IK"""
     bl_label = "Snap FK to IK"
     bl_idname = 'fk_to.ik_lleg'
     
@@ -1857,7 +2009,7 @@ class fktoikLleg(bpy.types.Operator):
         return {'FINISHED'}
 
 class fktoikLarm(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Left Arm to IK"""
     bl_label = "Snap FK to IK"
     bl_idname = 'fk_to.ik_larm'
     
@@ -1895,7 +2047,7 @@ class fktoikLarm(bpy.types.Operator):
         return {'FINISHED'}
 
 class fktoikRarm(bpy.types.Operator):
-
+    """Keyframes the Current Values and changes the Right Arm to IK"""
     bl_label = "Snap FK to IK"
     bl_idname = 'fk_to.ik_rarm'
     
@@ -1930,8 +2082,36 @@ class fktoikRarm(bpy.types.Operator):
         else:
             self.report({'ERROR'}, "Must be in Pose Mode")
         
-        return {'FINISHED'}     
+        return {'FINISHED'}
 
+class MainTab(bpy.types.Operator):
+    """Main Rig Settings"""
+    bl_label = "Main"
+    bl_idname = 'main.tab'
+    
+    import bpy
+    import addon_utils
+
+    def execute(self, context):
+        #bpy.context.object.data["RigTabs"] = 0
+        bpy.types.Scene.EpicRigTabs = IntProperty(name = "Epic Rig Tabs", default=0)
+        
+        return {'FINISHED'}
+
+class AdvancedTab(bpy.types.Operator):
+    """Advanced Rig Settings - More to Come!"""
+    bl_label = "Advanced"
+    bl_idname = 'advanced.tab'
+    
+    import bpy
+    import addon_utils
+
+    def execute(self, context):
+        #bpy.context.object.data["RigTabs"] = 1
+        bpy.types.Scene.EpicRigTabs = IntProperty(name = "Epic Rig Tabs", default=1)
+        
+        return {'FINISHED'}
+    
 """class resetsnapping(bpy.types.Operator):
     
     bl_label = "Reset Snapping"
@@ -1961,27 +2141,7 @@ class fktoikRarm(bpy.types.Operator):
            
         return {'FINISHED'}
 """
-class SmearSlider(bpy.types.Panel):
-    
-    bl_label = "Smears"
-    bl_idname = "SMEAR_SLIDER"
-    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'EpicFigRig'  
-    bl_options = {'DEFAULT_CLOSED'}
-    
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.prop(context.active_object.data, '["LLegSmear"]', slider=True)
-        row = layout.row()
-        row.prop(context.active_object.data, '["RLegSmear"]', slider=True)
-        row = layout.row()
-        row.prop(context.active_object.data, '["LArmSmear"]', slider=True)
-        row = layout.row()
-        row.prop(context.active_object.data, '["RArmSmear"]', slider=True)
-    
+
 #REGISTRATION
 
 def register():
@@ -1993,6 +2153,10 @@ def register():
     bpy.utils.register_class(RigSettings)
 
     bpy.utils.register_class(SmearSlider)
+    
+    bpy.utils.register_class(BoneAdjust)
+    
+    bpy.utils.register_class(BoneVis)
 
     bpy.utils.register_class(ResetMasterBone)
 
@@ -2031,6 +2195,16 @@ def register():
     bpy.utils.register_class(ArmMenu)
     
     bpy.utils.register_class(LegMenu)
+    
+    bpy.utils.register_class(MainTab)
+    
+    bpy.utils.register_class(AdvancedTab)
+    
+    #bpy.utils.register_class(EpicProperties)
+    
+    #bpy.types.Scene.EpicRigTabs = IntProperty(name = "EpicRigTabs", default=0, min=0, max=3)
+
+    bpy.types.Scene.EpicRigTabs = IntProperty(name = "Epic Rig Tabs", default=0, min=0, max=3)
 
 #    bpy.utils.register_class(resetsnapping)
 
@@ -2043,6 +2217,10 @@ def unregister():
     bpy.utils.unregister_class(RigSettings)
 
     bpy.utils.unregister_class(SmearSlider)
+    
+    bpy.utils.unregister_class(BoneAdjust)
+    
+    bpy.utils.unregister_class(BoneVis)
 
     bpy.utils.unregister_class(ResetMasterBone)
 
@@ -2081,6 +2259,14 @@ def unregister():
     bpy.utils.unregister_class(ArmMenu)
     
     bpy.utils.unregister_class(LegMenu)
+    
+    bpy.utils.unregister_class(MainTab)
+    
+    bpy.utils.unregister_class(AdvancedTab)
+    
+    #bpy.utils.unregister_class(EpicProperties)
+    
+    del bpy.types.Scene.EpicRigTabs 
     
 #    bpy.utils.unregister_class(resetsnapping)
     
