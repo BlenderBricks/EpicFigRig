@@ -792,7 +792,9 @@ class AutoRig(bpy.types.Operator):
             #CAPE
             for num in capes:
                 if num in fig.data.name:
-                    currentcape = fig.data.name + ".append"
+                    currentcape = fig.data.name[:5] + "uv.001.append"
+                    #renamecape = fig.data.name[:7] + ".001"
+                    #fig.data.name = renamecape
                     append_cape()
                     rigcape = bpy.data.objects['CapeRig']
                     rigcape.location = fig.location
@@ -845,7 +847,7 @@ class AutoRig(bpy.types.Operator):
     
                     bpy.data.collections.remove(collection)
                     
-                    #bpy.data.objects[currentcape].name = 'FinishedCape'
+                    #bpy.data.objects[renamecape].name = 'FinishedCape'
                     bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
                     bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
                     bpy.data.collections['ShapesBones'].hide_viewport = True
@@ -880,7 +882,6 @@ class AutoRig(bpy.types.Operator):
                         bpy.context.view_layer.objects.active = fig
                         bpy.context.active_object.modifiers.new("Boolean", 'BOOLEAN')
                         bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["RLBool"]
-                        bpy.context.object.modifiers["Boolean"].solver = 'FAST'
                         fig.select_set(False)
 
                         obj = bpy.data.objects[fig.name]
@@ -931,7 +932,6 @@ class AutoRig(bpy.types.Operator):
                         bpy.context.view_layer.objects.active = fig
                         bpy.context.active_object.modifiers.new("Boolean", 'BOOLEAN')
                         bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["RHBool"]
-                        bpy.context.object.modifiers["Boolean"].solver = 'FAST'
                         
                         obj = bpy.data.objects[fig.name]
                         dwive = obj.modifiers["Boolean"].driver_add("show_viewport")
