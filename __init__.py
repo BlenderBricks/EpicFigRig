@@ -792,7 +792,7 @@ class AutoRig(bpy.types.Operator):
             #CAPE
             for num in capes:
                 if num in fig.data.name:
-                    currentcape = fig.data.name[:5] + "uv.001.append"
+                    currentcape = fig.data.name[:5] + ".append"
                     #renamecape = fig.data.name[:7] + ".001"
                     #fig.data.name = renamecape
                     append_cape()
@@ -832,8 +832,8 @@ class AutoRig(bpy.types.Operator):
                     bpy.ops.object.select_all(action='DESELECT')
                     bpy.context.view_layer.objects.active = None
 
-                    bpy.data.objects[currentcape].name = "FinishedCape"
-                    bpy.context.scene.objects["FinishedCape"].select_set(True)
+                    #bpy.data.objects[currentcape].name = "FinishedCape"
+                    bpy.context.scene.objects[currentcape].select_set(True)
                     for obj in bpy.context.selected_objects:
                         bpy.context.view_layer.objects.active = obj
                     obj = bpy.context.active_object                    
@@ -848,11 +848,11 @@ class AutoRig(bpy.types.Operator):
                     bpy.data.collections.remove(collection)
                     
                     #bpy.data.objects[renamecape].name = 'FinishedCape'
-                    bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
-                    bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
+                    #bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
+                    #bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
                     bpy.data.collections['ShapesBones'].hide_viewport = True
                     bpy.data.collections['ShapesBones'].hide_render = True
-                    bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
+                    #bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
                                             
                             
             """#HAND"""
