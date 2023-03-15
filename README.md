@@ -59,3 +59,5 @@ Version 1.1.1
 - Fixed issue when rigging mutiple minifigures with capes in one blend file where cape would be parented to the wrong fig
 
 - Updated the naming system for better organization
+
+# Taking a Break, Updates will resume Monthly on May 15th - JabLab
