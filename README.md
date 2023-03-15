@@ -5,6 +5,8 @@ This is the official github for BlenderBricks's EpicFigRig. Shown in the video b
 
 # JabLab Changelog - Blender 3.3 and above
 
+Updates will resume Monthly on May 15th
+
 Version 1.0
 
 - Fixed Head Bone Size slider
@@ -44,11 +46,16 @@ Version 1.1
 - Other Bug Fixes
 
 - Increased the Number of Capes the add-on will autorig.
-  - At the moment, you can only rig one cape per blend file. You can get around this by rigging each minifgure in a seperate file, then appending the finished rig into the final .blend
 
 - Modified UI
-  - Moved more uncommon features into the "Advanced" tab
-
+    - Moved more uncommon features into the "Advanced" tab
+	 
 - Made roadmap document public, added in add-on underneath user info document. 
 
 - Removed Herobrine
+
+Version 1.1.1
+
+- Fixed issue when rigging mutiple minifigures with capes in one blend file where cape would be parented to the wrong fig
+
+- Updated the naming system for better organization

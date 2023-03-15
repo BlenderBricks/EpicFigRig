@@ -464,16 +464,50 @@ class BoneVis(bpy.types.Panel):
         
 #BUTTONS 
 
+"""#Naming
+class Naming(bpy.types.Operator):
+    
+    bl_label = "Name Minifigure"
+    bl_idname = 'name.mini'    
+    
+    mininame = bpy.props.StringProperty(name = "Minifigure Name:", default= "")
+    
+    def execute(self, context):
+        mname = self.mininame
+        
+        return {'FINISHED'} 
+    
+    #Opens naming dialogue window
+    def invoke(self, context, event):
+        
+        return context.window_manager.invoke_props_dialog(self)
+"""
 #AutoRig
 class AutoRig(bpy.types.Operator):
     """Autorig Selected Minifgure - YOU MUST DELETE THE EMPTY!"""
     bl_label = "  Rig Selected Minifigure  "
     bl_idname = 'auto.rig'
     
+    #mininame: bpy.props.StringProperty(name = "Minifigure Name:", default= "")
+    
     def execute(self, context):        
         
         child = True
+        
+        #Naming()
+        
+        #mname = self.mininame
+        bpy.context.view_layer.objects.active = bpy.context.selected_objects[1]
+        col = bpy.context.active_object.users_collection[0]
+        mname = col.name
+        
+        collections = bpy.context.view_layer.layer_collection.children
 
+        for collection in collections:
+            if collection.name == mname:
+                bpy.context.view_layer.active_layer_collection = collection
+        
+        
         def driverCreate(context, object, armatures, path, Bo_nus, path2, expression, x, y, xx, yy):
             obj = bpy.data.objects[object]
             dwive = obj.driver_add("hide_viewport")
@@ -847,9 +881,11 @@ class AutoRig(bpy.types.Operator):
     
                     bpy.data.collections.remove(collection)
                     
-                    #bpy.data.objects[renamecape].name = 'FinishedCape'
-                    #bpy.data.objects['CapeRig'].name = 'FinishedCapeRig'
-                    #bpy.data.collections['CapeRig'].name = 'FinishedCapeRig'
+                    r = " Rig"
+                    c = " Cape"
+                    bpy.data.objects[currentcape].name = mname + c
+                    bpy.data.objects['CapeRig'].name = mname + c + r
+                    bpy.data.collections['CapeRig'].name = mname + c + r
                     bpy.data.collections['ShapesBones'].hide_viewport = True
                     bpy.data.collections['ShapesBones'].hide_render = True
                     #bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
@@ -981,9 +1017,12 @@ class AutoRig(bpy.types.Operator):
 
                     parent(handname, False, '["LLegSmear"]')
 
-        bpy.data.armatures["Rig"].name = "FinishedRig"
-        rig.name = "FinishedRig"
-        collections["BoneShapes"].name = "FinishedBoneShapes"
+        r = " Rig"
+        b = " Bone Shapes"
+        bpy.data.armatures["Rig"].name = mname + r
+        rig.name = mname + r
+        collections["BoneShapes"].name = mname + b
+        collections["The EpicFigRig"].name = mname + r
 
         objectsfsmear = bpy.data.objects
         
@@ -1022,6 +1061,12 @@ class AutoRig(bpy.types.Operator):
         keyframeikslider ='["RightLegIK"]'
 
         return {'FINISHED'}
+    
+    """def invoke(self, context, event):
+        
+        self.actname = bpy.context.active_object.users_collection
+        return context.window_manager.invoke_props_dialog(self)"""
+
 
 #Master Bone   
 class ResetMasterBone(bpy.types.Operator):
@@ -2200,6 +2245,8 @@ def register():
     
     bpy.utils.register_class(AdvancedTab)
     
+    #bpy.utils.register_class(Naming)
+    
     #bpy.utils.register_class(EpicProperties)
     
     #bpy.types.Scene.EpicRigTabs = IntProperty(name = "EpicRigTabs", default=0, min=0, max=3)
@@ -2263,6 +2310,8 @@ def unregister():
     bpy.utils.unregister_class(MainTab)
     
     bpy.utils.unregister_class(AdvancedTab)
+    
+    #bpy.utils.unregister_class(Naming)
     
     #bpy.utils.unregister_class(EpicProperties)
     
