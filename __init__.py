@@ -16,7 +16,7 @@
 bl_info = {
     "name": "The EpicFigRig - JabLab Version",
     "author": "Jambo, Owenator Productions, Golden Ninja Ben, IX Productions, JabLab, and Citrine's Animations",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (3, 3, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "An Epic Minifigure Rig",
@@ -54,9 +54,9 @@ class EpicFigRigPanel(bpy.types.Panel):
         row = box.row()
         row.operator("wm.url_open", text="JabLab Roadmap", icon= 'URL', emboss= False).url = "https://docs.google.com/document/d/1kJMUFe73h4Af69KkrOU4y_3KU6dmt_5DmBlqC_X1Q5E/edit?usp=sharing"
         row = layout.row()
-        row.label(text= "Active: Object:")
+        row.label(text= "Active: "+ bpy.context.object.data.name, icon= 'RESTRICT_SELECT_OFF')
         #row = layout.row()
-        #row.label(text= bpy.context.object.data.name, icon= 'OUTLINER_OB_ARMATURE') #emboss= False)
+        #row.label(text= bpy.context.object.data.name) #emboss= False)
         
         row = layout.row()
         row.operator('auto.rig')
@@ -637,7 +637,7 @@ class AutoRig(bpy.types.Operator):
         arm_r = ["16000", "3818", "62691"]
         arm_l = ["16001", "3819", "62691"]
         torso = ["3814"]
-        torso_gear = ["95348", "61976", "6132", "93223", "93069", "10052", "10065", "42446", "48724", "92590", "4523", "2524", "12397", "4498", "2526", "30133", "2610", "97895", "38781", "3838", "3840", "2587", "72326",  "11260", "15339", "30091", "15490", "15428", "34685", "24135", "18986", "15423", "98132", "24097", "22402", "28350", "12618", "19723", "4524", "11097", "26966", "93250", "99250", "26073", "4736", "11438", "15406", "18827", "27325", "10183", "6158", "27148", "27151", "27147", "98722", "64802", "23983", "28716", "25376", "30174", "24588", "15086", "13791", "20566", "24217", "88295", "39260", "41637", "34706", "41811", "39796", "41162", "41202", "37822", "65183", "79786"]
+        torso_gear = ["95348", "61976", "6132", "93223", "93069", "10052", "10065", "42446", "48724", "92590", "4523", "2524", "12397", "4498", "2526", "30133", "2610", "97895", "38781", "3838", "3840", "2587", "72326",  "11260", "15339", "30091", "15490", "15428", "34685", "24135", "18986", "15423", "98132", "24097", "22402", "28350", "12618", "19723", "4524", "11097", "26966", "93250", "99250", "26073", "4736", "11438", "15406", "18827", "27325", "10183", "6158", "27148", "27151", "27147", "98722", "64802", "23983", "28716", "25376", "30174", "24588", "15086", "13791", "20566", "24217", "88295", "39260", "41637", "34706", "41811", "39796", "41162", "41202", "37822", "65183", "79786", "34721p2"]
         hand_epic = ["3820", "2531", "9532"]
         child_leg = ["37365", "37366" "16709", "37679", "41879"]
         child_leg_single = ["16709", "37679", "41879"]
@@ -674,10 +674,8 @@ class AutoRig(bpy.types.Operator):
         head_clothing_visors = ["2447", "41805", "23318", "89159", "30170", "6119", "30090", 
         "15446", "2594", "22393", "22395", "22400", "22401", "22394", "23851", "28976",]
         
-        capes = ["20547","23901","29453","34721","50231","50525","56630","56630","65384","99464"]
+        capes = ["20547","23901","29453","34721p1","50231","50525","56630","56630","65384","99464",]
         
-        #capes_apend = ["20547uv.001.append","23901uv.001.append","29453uv.001.append","34721uv.001.append","50231uv.001.append","50525uv.001.append","56630uv.001.append","56630uv.002.append","65384uv.001.append","99464uv.001.append"] 
-
         selected_objects = bpy.context.selected_objects
         loc = bpy.context.selected_objects[0]
         
@@ -829,6 +827,9 @@ class AutoRig(bpy.types.Operator):
                     currentcape = fig.data.name[:5] + ".append"
                     #renamecape = fig.data.name[:7] + ".001"
                     #fig.data.name = renamecape
+                    if currentcape == "34721.append":
+                        currentcape = "34721p1.append"
+                        
                     append_cape()
                     rigcape = bpy.data.objects['CapeRig']
                     rigcape.location = fig.location

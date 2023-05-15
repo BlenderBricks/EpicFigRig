@@ -60,4 +60,8 @@ Version 1.1.1
 
 - Updated the naming system for better organization
 
-# Taking a Break, Updates will resume Monthly on May 15th - JabLab
+Version 1.1.2
+
+- Patched LEPIN Hands in later updates (.... again)
+
+- Fixed issue where one of the neck capes would turn into a different rigged cape
