@@ -5,7 +5,7 @@ This is the official github for BlenderBricks's EpicFigRig. Shown in the video b
 
 # JabLab Changelog - Blender 3.3 and above
 
-Updates will resume Monthly on May 15th
+Updates on the 15th of every month!
 
 Version 1.0
 
