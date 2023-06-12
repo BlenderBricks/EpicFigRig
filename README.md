@@ -5,7 +5,7 @@ This is the official github for BlenderBricks's EpicFigRig. Shown in the video b
 
 # JabLab Changelog - Blender 3.3 and above
 
-Updates on the 15th of every month
+Updates will resume Monthly on May 15th
 
 Version 1.0
 
@@ -65,3 +65,31 @@ Version 1.1.2
 - Patched LEPIN Hands in later updates (.... again)
 
 - Fixed issue where one of the neck capes would turn into a different rigged cape
+
+Version 1.1.3
+
+- Added various skirt rigs for autorig
+
+- Props!
+    - Added the ability to rig props after the rig has been rigged. Selection order will not matter, so no accidentally rigging the rig to itself
+    - Props can be attached to any of the following 8 attachment points
+    - 0: No parent
+    - 1: Master Bone
+    - 2: Left Hand
+    - 3: Right Hand
+    - 4: Upper Back
+    - 5: Lower Back/Hip
+    - 6: Left Leg
+    - 7: Right Leg
+    - By default props will be rigged to hands (Right hand for Prop A, Left hand for Prop B)
+    - Props can be transformed in Local Y space to allow for different pivot points
+    - As of right now, only one object can be rigged at a time. Looking to change that in future updates
+
+- New Custom Bone Shapes
+    - Hook for left hand
+    - Minimalistic hand for both left and right hands
+
+- Sliders
+    - Changed all custom property sliders to be linked to the rig's masterbone instead of the the armature itself. This was done to make these custom properties hidden in the timeline on deselection and avoid accidentally selecting them later when using multiple rigs
+
+- Bug fix for pivot controller

@@ -1,3 +1,6 @@
+# Copyright (C) 2020-2023 The EpicFigRig Team
+# https://github.com/BlenderBricks/EpicFigRig
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
@@ -15,8 +18,8 @@
 
 bl_info = {
     "name": "The EpicFigRig - JabLab Version",
-    "author": "Jambo, Owenator Productions, Golden Ninja Ben, IX Productions, JabLab, and Citrine's Animations",
-    "version": (1, 1, 2),
+    "author": "JabLab, IX Productions, Citrine's Animations, Jambo, Owenator Productions and Golden Ninja Ben",
+    "version": (1, 1, 3),
     "blender": (3, 3, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "An Epic Minifigure Rig",
@@ -53,13 +56,21 @@ class EpicFigRigPanel(bpy.types.Panel):
         box = layout.box()
         row = box.row()
         row.operator("wm.url_open", text="JabLab Roadmap", icon= 'URL', emboss= False).url = "https://docs.google.com/document/d/1kJMUFe73h4Af69KkrOU4y_3KU6dmt_5DmBlqC_X1Q5E/edit?usp=sharing"
-        row = layout.row()
-        row.label(text= "Active: "+ bpy.context.object.data.name, icon= 'RESTRICT_SELECT_OFF')
+        #row = layout.row()
+        #row.label(text= "Active: "+ bpy.context.object.data.name, icon= 'RESTRICT_SELECT_OFF')
         #row = layout.row()
         #row.label(text= bpy.context.object.data.name) #emboss= False)
         
         row = layout.row()
+        row = layout.row(align=True)
         row.operator('auto.rig')
+        #row.operator('normalise.rig')
+        #row = layout.row()
+        #row.label(text= "Rig Props:")
+        row = layout.row(align=True)
+        row.operator('propa.rig')
+        row.operator('propb.rig')
+        row = layout.row()
         row = layout.row()
         row.label(text= "Rig Settings:", icon= 'OPTIONS')
         row = layout.row()
@@ -158,17 +169,17 @@ class RigSettings(bpy.types.Panel):
         if check_prop == True:
             sub = row.row()
             row = layout.row()
-            row.prop(context.active_object.data, '["Head Accessory Bone Scale"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Head Accessory Bone Scale"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Head Bone Scale"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Head Bone Scale"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Head Bone Transform"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Head Bone Transform"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Torso Bone Scale"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Torso Bone Scale"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Second Master Bone"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Second Master Bone"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Locators"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Locators"]', slider=True)
 
 class SmearSlider(bpy.types.Panel):
     
@@ -189,13 +200,13 @@ class SmearSlider(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.prop(context.active_object.data, '["LLegSmear"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["LLegSmear"]', slider=True)
         row = layout.row() 
-        row.prop(context.active_object.data, '["RLegSmear"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["RLegSmear"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["LArmSmear"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["LArmSmear"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["RArmSmear"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["RArmSmear"]', slider=True)
 
 class ArmMenu(bpy.types.Panel):
     
@@ -238,7 +249,7 @@ class ArmMenu(bpy.types.Panel):
             
         if check_prop == True:
             """row = layout.row()
-            row.prop(context.active_object.data, '["ArmIK"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["ArmIK"]', slider=True)
             row = layout.row()
             if bpy.data.armatures[bpy.context.object.data.name]["ArmIK"] == 0:
                 sub.enabled = False
@@ -246,17 +257,18 @@ class ArmMenu(bpy.types.Panel):
                 sub.enabled == True
                 row = self.layout.row()
                 sub = row.row()
-                sub.prop(context.active_object.data, '["IK Arm Socket Lock"]', slider=True)"""
+                sub.prop(context.active_object.pose.bones["MasterBone"], '["IK Arm Socket Lock"]', slider=True)"""
 
             sub = row.row()
             row = layout.row()
-            row.prop(context.active_object.data, '["Lepin Hands"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Lepin Hands"]', slider=True)
             row = layout.row()
             layout.label(text="Left Arm:", icon= 'EVENT_L')
            
             row = layout.row()
-            row.prop(context.active_object.data, '["LeftArmIK"]', slider=True)
-            if bpy.data.armatures[bpy.context.object.data.name]["LeftArmIK"] == 0:
+            row.prop(context.active_object.pose.bones["MasterBone"], '["LeftArmIK"]', slider=True)
+            if bpy.context.active_object.pose.bones["MasterBone"]["LeftArmIK"] == 0:
+            #if bpy.data.armatures[bpy.context.object.data.name]["LeftArmIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
@@ -271,20 +283,21 @@ class ArmMenu(bpy.types.Panel):
                 row = layout.row(align=True)
                 row.operator('ik_to.fk_larm')
                 row = layout.row()
-                row.prop(context.active_object.data, '["IK Arm Socket Lock"]', slider=True)
+                row.prop(context.active_object.pose.bones["MasterBone"], '["IK Arm Socket Lock"]', slider=True)
                 row = layout.row()
            
             row = layout.row()
-            row.prop(context.active_object.data, '["Invert Left Arm"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Invert Left Arm"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Mirror Left Arm"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Mirror Left Arm"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["LArmSmear"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["LArmSmear"]', slider=True)
             layout.label(text="Right Arm:", icon= 'EVENT_R')
 
             row = layout.row()
-            row.prop(context.active_object.data, '["RightArmIK"]', slider=True)
-            if bpy.data.armatures[bpy.context.object.data.name]["RightArmIK"] == 0:
+            row.prop(context.active_object.pose.bones["MasterBone"], '["RightArmIK"]', slider=True)
+            if bpy.context.active_object.pose.bones["MasterBone"]["RightArmIK"] == 0:
+            #if bpy.data.armatures[bpy.context.object.data.name]["RightArmIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
@@ -299,15 +312,15 @@ class ArmMenu(bpy.types.Panel):
                 row = layout.row(align=True)
                 row.operator('ik_to.fk_rarm')
                 row = layout.row()
-                row.prop(context.active_object.data, '["IK Arm Socket Lock"]', slider=True)
+                row.prop(context.active_object.pose.bones["MasterBone"], '["IK Arm Socket Lock"]', slider=True)
                 row = layout.row()
 
             row = layout.row()
-            row.prop(context.active_object.data, '["Invert Right Arm"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Invert Right Arm"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["Mirror Right Arm"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Mirror Right Arm"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["RArmSmear"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["RArmSmear"]', slider=True)
 
 
 class LegMenu(bpy.types.Panel):
@@ -357,8 +370,9 @@ class LegMenu(bpy.types.Panel):
             row = layout.row()
             sub = row.row()
             row = layout.row()
-            row.prop(context.active_object.data, '["LeftLegIK"]', slider=True)
-            if bpy.data.armatures[bpy.context.object.data.name]["LeftLegIK"] == 0:
+            row.prop(context.active_object.pose.bones["MasterBone"], '["LeftLegIK"]', slider=True)
+            if bpy.context.active_object.pose.bones["MasterBone"]["LeftLegIK"] == 0:
+            #if bpy.data.armatures[bpy.context.object.data.name]["LeftLegIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
@@ -375,17 +389,18 @@ class LegMenu(bpy.types.Panel):
                 row = layout.row()
                   
             row = layout.row()
-            row.prop(context.active_object.data, '["Invert Left Leg"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Invert Left Leg"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["LLegSmear"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["LLegSmear"]', slider=True)
             row = layout.row()           
 
             sub = row.row()
             row = layout.row()
             layout.label(text="Right Leg:", icon= 'EVENT_R')
             row = layout.row()
-            row.prop(context.active_object.data, '["RightLegIK"]', slider=True)
-            if bpy.data.armatures[bpy.context.object.data.name]["RightLegIK"] == 0:
+            row.prop(context.active_object.pose.bones["MasterBone"], '["RightLegIK"]', slider=True)
+            if bpy.context.active_object.pose.bones["MasterBone"]["LeftLegIK"] == 0:
+            #if bpy.data.armatures[bpy.context.object.data.name]["RightLegIK"] == 0:
                 sub.enabled = True
                 row = self.layout.row()
                 sub = row.row()
@@ -402,9 +417,9 @@ class LegMenu(bpy.types.Panel):
                 row = layout.row()
 
             row = layout.row()
-            row.prop(context.active_object.data, '["Invert Right Leg"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["Invert Right Leg"]', slider=True)
             row = layout.row()
-            row.prop(context.active_object.data, '["RLegSmear"]', slider=True)
+            row.prop(context.active_object.pose.bones["MasterBone"], '["RLegSmear"]', slider=True)
             row = layout.row()
 
 ######ADVANCED TAB######
@@ -428,15 +443,15 @@ class BoneAdjust(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.prop(context.active_object.data, '["Head Accessory Bone Scale"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Head Accessory Bone Scale"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["Head Bone Scale"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Head Bone Scale"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["Head Bone Transform"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Head Bone Transform"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["Torso Bone Scale"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Torso Bone Scale"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["Leg Height"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Leg Height"]', slider=True)
         row = layout.row()
         
 class BoneVis(bpy.types.Panel):
@@ -458,9 +473,67 @@ class BoneVis(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.prop(context.active_object.data, '["Second Master Bone"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Second Master Bone"]', slider=True)
         row = layout.row()
-        row.prop(context.active_object.data, '["Locators"]', slider=True)
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Locators"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop Bone A Visibility"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop Bone B Visibility"]', slider=True)
+
+class BoneShapes(bpy.types.Panel):
+    
+    bl_label = "Bone Shapes"
+    bl_idname = "BONE_SHAPES"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'  
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 1:
+        if bpy.context.scene.EpicRigTabs == 1: 
+            return True
+        
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Left Hand Shape"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Right Hand Shape"]', slider=True)
+
+class Props(bpy.types.Panel):
+    
+    bl_label = "Props"
+    bl_idname = "Props"
+    bl_parent_id = "EPIC_FIGRIG_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'  
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 1:
+        if bpy.context.scene.EpicRigTabs == 1: 
+            return True
+        
+    def draw(self, context):
+        layout = self.layout
+        
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop A"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop A Transform"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop B"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop B Transform"]', slider=True)
+        row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Back Hip Parent"]', slider=True)
+        
         
 #BUTTONS 
 
@@ -482,7 +555,8 @@ class Naming(bpy.types.Operator):
         
         return context.window_manager.invoke_props_dialog(self)
 """
-#AutoRig
+
+#Auto Rig
 class AutoRig(bpy.types.Operator):
     """Autorig Selected Minifgure - YOU MUST DELETE THE EMPTY!"""
     bl_label = "  Rig Selected Minifigure  "
@@ -628,6 +702,12 @@ class AutoRig(bpy.types.Operator):
             bpy.ops.wm.append(filename = object_name, directory = path)
             #path = addon_dirc + "/Cape_Rig.blend/Object/"
             #bpy.ops.wm.append(filename = currentcape, directory = path)
+            
+        def append_skirt():
+            path = addon_dirc + "/Skirt_Rig.blend/Collection/"
+            object_name = "SkirtRig"
+            bpy.ops.wm.append(filename = object_name, directory = path)
+        
 
         leg_l = ["3817", "20926", "24083", "37364p2", "37366"]
         leg_r = ["3816", "20932", "24082", "37364p1", "2532", "37365"]
@@ -675,6 +755,8 @@ class AutoRig(bpy.types.Operator):
         "15446", "2594", "22393", "22395", "22400", "22401", "22394", "23851", "28976",]
         
         capes = ["20547","23901","29453","34721p1","50231","50525","56630","56630","65384","99464",]
+        
+        skirts = ["txt2","txt3","33426","26697","68054"]
         
         selected_objects = bpy.context.selected_objects
         loc = bpy.context.selected_objects[0]
@@ -778,8 +860,8 @@ class AutoRig(bpy.types.Operator):
             for num in torso_gear:
                 if num in fig.data.name:
                     parent("Torso Rock", False, '["LLegSmear"]')
-                    bpy.context.object.data["Head Bone Transform"] = 1.5
-                    bpy.context.object.data["Torso Bone Scale"] = .75
+                    bpy.data.objects["Rig"].pose.bones["MasterBone"]["Head Bone Transform"] = 1.5
+                    bpy.data.objects["Rig"].pose.bones["MasterBone"]["Torso Bone Scale"] = .75
 
             #TORSO
             for num in torso:
@@ -807,8 +889,8 @@ class AutoRig(bpy.types.Operator):
             for num in head_accessory:
                 if num in fig.data.name:
                     parent("Head Accessory", False, '["LLegSmear"]')
-                    bpy.context.object.data["Head Bone Scale"] = .85
-                    bpy.context.object.data["Head Accessory Bone Scale"] = 1.0
+                    bpy.data.objects["Rig"].pose.bones["MasterBone"]["Head Bone Scale"] = .85
+                    bpy.data.objects["Rig"].pose.bones["MasterBone"]["Head Accessory Bone Scale"] = 1.0
                     break
             
             #HEAD_CLOTHING.ACCESSORIES
@@ -891,7 +973,72 @@ class AutoRig(bpy.types.Operator):
                     bpy.data.collections['ShapesBones'].hide_render = True
                     #bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
                                             
-                            
+            #SKIRTS
+            for num in skirts:
+                if num in fig.data.name:
+                    currentcape = fig.data.name[:4] + ".append"
+                        
+                    append_skirt()
+                    rigcape = bpy.data.objects['SkirtRig']
+                    rigcape.location = fig.location
+
+                    LFleg = rigcape.pose.bones['Front.L'].constraints['Transformation']
+
+                    LFleg.target = rig
+                    LFleg.subtarget = "LeftLeg"
+
+                    LFleg2 = rigcape.pose.bones['Back.L'].constraints['Transformation']
+
+                    LFleg2.target = rig
+                    LFleg2.subtarget = "LeftLeg"
+
+                    
+                    RFleg = rigcape.pose.bones['Front.R'].constraints['Transformation']
+
+                    RFleg.target = rig
+                    RFleg.subtarget = "RightLeg"
+
+                    RFleg2 = rigcape.pose.bones['Back.R'].constraints['Transformation']
+
+                    RFleg2.target = rig
+                    RFleg2.subtarget = "RightLeg"
+
+                    bpy.data.objects[currentcape].material_slots[0].material = fig.material_slots[0].material
+
+                    bpy.ops.object.select_all(action='DESELECT')
+                    fig.select_set(True)
+                    bpy.context.view_layer.objects.active = fig
+                    bpy.ops.object.delete() 
+                    fig = rigcape
+                    parent("Torso", False, '["LLegSmear"]')
+                    
+                    bpy.ops.object.select_all(action='DESELECT')
+                    bpy.context.view_layer.objects.active = None
+
+                    #bpy.data.objects[currentcape].name = "FinishedCape"
+                    bpy.context.scene.objects[currentcape].select_set(True)
+                    for obj in bpy.context.selected_objects:
+                        bpy.context.view_layer.objects.active = obj
+                    obj = bpy.context.active_object                    
+                    bpy.data.collections['SkirtRig'].objects.link(obj)
+                    bpy.data.collections['Skirt Appends'].objects.unlink(obj)
+                    bpy.ops.object.select_all(action='DESELECT')
+                                
+                    collection = bpy.data.collections.get('Skirt Appends')
+                    for obj in collection.objects:
+                        bpy.data.objects.remove(obj, do_unlink=True)
+    
+                    bpy.data.collections.remove(collection)
+                    
+                    r = " Rig"
+                    c = " Cape"
+                    bpy.data.objects[currentcape].name = mname + c
+                    bpy.data.objects['SkirtRig'].name = mname + c + r
+                    bpy.data.collections['SkirtRig'].name = mname + c + r
+                    bpy.data.collections['SkirtShapes'].hide_viewport = True
+                    bpy.data.collections['SkirtShapes'].hide_render = True
+                    #bpy.data.collections['ShapesBones'].name = 'FinishedShapesBones'
+                                    
             """#HAND"""
             for num in hand_epic:
                 if num in fig.data.name:
@@ -1018,6 +1165,23 @@ class AutoRig(bpy.types.Operator):
 
                     parent(handname, False, '["LLegSmear"]')
 
+                #Turn Rig into Child
+                    
+        rig.select_set(True)
+        if child == True:
+            bpy.data.objects["Rig"].pose.bones["MasterBone"]["Leg Height"] = 2.0
+            
+            bpy.data.objects["Rig"].pose.bones["MasterBone"]["Prop Bones Transform"] = 2.0
+
+        else:
+
+            bpy.data.objects["Rig"].pose.bones["MasterBone"]["Leg Height"] = 0.0
+        
+        #hides Prop Bones    
+        bpy.data.objects["Rig"].pose.bones["MasterBone"]["Prop Bone A Visibility"] = 0
+        bpy.data.objects["Rig"].pose.bones["MasterBone"]["Prop Bone B Visibility"] = 0
+        
+        #renames rigs
         r = " Rig"
         b = " Bone Shapes"
         bpy.data.armatures["Rig"].name = mname + r
@@ -1037,15 +1201,6 @@ class AutoRig(bpy.types.Operator):
         objectsfsmear["RarmS"].name = "FinishedRarmS"
         objectsfsmear["RHBool"].name = "FinishedRHBool"
         objectsfsmear["RLBool"].name = "FinishedRLBool"
-        
-        #Turn Rig into Child
-        rig.select_set(True)
-        if child == True:
-            bpy.context.object.data["Leg Height"] = 2.0
-
-        else:
-
-            bpy.context.object.data["Leg Height"] = 0.0
             
         #create global varibles for iksnap
         global mainfkbone
@@ -1068,6 +1223,97 @@ class AutoRig(bpy.types.Operator):
         self.actname = bpy.context.active_object.users_collection
         return context.window_manager.invoke_props_dialog(self)"""
 
+class PropRigA(bpy.types.Operator):
+    """Rig Selected Object(s) to Prop A (Default Right Hand)"""
+    bl_label = "  Prop A  "
+    bl_idname = 'propa.rig'
+    
+    def execute(self, context):
+        
+        for obj in bpy.context.selected_objects:
+        
+            if obj.type == 'ARMATURE':
+                    global selected_armature
+                    selected_armature = obj.name
+                    
+            if obj.type == 'MESH':
+                    bpy.context.view_layer.objects.active = obj
+        
+        bpy.data.objects[selected_armature].pose.bones["MasterBone"]["Prop Bone A Visibility"] = 1
+        ob= bpy.context.active_object
+        arma = bpy.data.objects[selected_armature]
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+        arma.select_set(True)
+        bpy.context.view_layer.objects.active = arma
+        
+        bpy.data.objects[selected_armature].pose.bones["MasterBone"]["Prop Bone A Visibility"] = 1        
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.object.mode_set(mode='EDIT')
+
+
+        parent_bone = 'AP Bone Transform'  # choose the bone name which you want to be the parent
+
+        arma.data.edit_bones.active = arma.data.edit_bones[parent_bone]
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.ops.object.select_all(action='DESELECT')  # deselect all objects
+        ob.select_set(True)
+        arma.select_set(True)
+        bpy.context.view_layer.objects.active = arma
+        # the active object will be the parent of all selected object
+
+        bpy.ops.object.parent_set(type='BONE', keep_transform=True)
+        
+        return {'FINISHED'}
+    
+class PropRigB(bpy.types.Operator):
+    """Rig Selected Object(s) to Prop B (Default Left Hand)"""
+    bl_label = "  Prop B  "
+    bl_idname = 'propb.rig'
+    
+    def execute(self, context):
+        
+        for obj in bpy.context.selected_objects:
+        
+            if obj.type == 'ARMATURE':
+                    global selected_armature
+                    selected_armature = obj.name
+                    
+            if obj.type == 'MESH':
+                    bpy.context.view_layer.objects.active = obj
+                
+        bpy.data.objects[selected_armature].pose.bones["MasterBone"]["Prop Bone B Visibility"] = 1
+        ob= bpy.context.active_object
+        arma = bpy.data.objects[selected_armature]
+
+        bpy.ops.object.select_all(action='DESELECT')
+
+        arma.select_set(True)
+        bpy.context.view_layer.objects.active = arma
+        
+        bpy.data.objects[selected_armature].pose.bones["MasterBone"]["Prop Bone B Visibility"] = 1        
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.object.mode_set(mode='EDIT')
+
+
+        parent_bone = 'AP Bone B Transform'  # choose the bone name which you want to be the parent
+
+        arma.data.edit_bones.active = arma.data.edit_bones[parent_bone]
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.ops.object.select_all(action='DESELECT')  # deselect all objects
+        ob.select_set(True)
+        arma.select_set(True)
+        bpy.context.view_layer.objects.active = arma
+        # the active object will be the parent of all selected object
+
+        bpy.ops.object.parent_set(type='BONE', keep_transform=True)
+        
+        return {'FINISHED'}
 
 #Master Bone   
 class ResetMasterBone(bpy.types.Operator):
@@ -1192,10 +1438,10 @@ class ResetMasterBone(bpy.types.Operator):
             
             #switch custom property
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]') #, frame = cur_frame -1)
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]') #, frame = cur_frame -1)
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)
             bpy.data.armatures[selected_armature]["Pivot Slide"] = 0
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]') #, frame = cur_frame)
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]') #, frame = cur_frame)
             
             #update the scene
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -1228,7 +1474,7 @@ class SnapMasterBone(bpy.types.Operator):
                         selected_armature = obj.name
                         print("UNDER THISSSSSS")
                         print(name_mark)
-            master_bone_snap = bpy.data.objects[selected_armature].pose .bones["Master Bone Snap"] #context.active_pose_bone
+            master_bone_snap = bpy.data.objects[selected_armature].pose.bones["Master Bone Snap"] #context.active_pose_bone
             master_bone = bpy.data.objects[selected_armature].data.bones["MasterBone"]
             cur_frame = bpy.context.scene.frame_current
             context = bpy.context
@@ -1332,7 +1578,7 @@ class SwitchPivottoLeft(bpy.types.Operator):
             bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
             bpy.data.objects[selected_armature].data.bones["LeftFootIK"].select = True
             bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]')
             
             #turn on armature layer 18
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)
@@ -1357,7 +1603,7 @@ class SwitchPivottoLeft(bpy.types.Operator):
             
             #switch custom property
             bpy.data.armatures[selected_armature]["Pivot Slide"] = 1
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]')
     
             #turn off layer 18
             bpy.context.object.data.layers[18] = False
@@ -1403,7 +1649,7 @@ class SwitchPivottoRight(bpy.types.Operator):
             bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
             bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
             bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]')
             
             #turn on layer 18
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1) 
@@ -1426,7 +1672,7 @@ class SwitchPivottoRight(bpy.types.Operator):
             
             #switch custom property
             bpy.data.armatures[selected_armature]["Pivot Slide"] = 0
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]')
     
             #turn off layer 18
             bpy.context.object.data.layers[18] = False
@@ -1471,7 +1717,7 @@ class ResetPivot(bpy.types.Operator):
             bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
             #bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
             bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]')
             
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)            
             bpy.data.objects[selected_armature].pose.bones["Pivot"].location[0] = 0
@@ -1486,7 +1732,7 @@ class ResetPivot(bpy.types.Operator):
             
             #switch custom property
             bpy.data.armatures[selected_armature]["Pivot Slide"] = 0
-            bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
+            bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path = '["Pivot Slide"]')
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)
         else:
@@ -1728,14 +1974,14 @@ def iktofk():
         addon_utils.check("space_view3d_copy_attributes")
         
     #sets keyframe on every bone
-    bpy.context.object.data["SnapVis"] = 1
+    bpy.data.objects[selected_armature].pose.bones["MasterBone"]["SnapVis"] = 1
     bpy.context.view_layer.objects.active.data.bones[mainfkbone].select = True
     bpy.context.view_layer.objects.active.data.bones[snapfkbone].select = True
     bpy.context.view_layer.objects.active.data.bones[mainikbone].select = True
     bpy.context.view_layer.objects.active.data.bones[snapikbone].select = True
             
     bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
-    keyframeikslider
+    #keyframeikslider
            
     bpy.ops.pose.select_all(action='DESELECT')
     
@@ -1750,8 +1996,8 @@ def iktofk():
     bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
 
     #turns on IK contstaint
-    bpy.context.object.data[toggleikslider] = 0
-    bpy.context.object.data.keyframe_insert(data_path=keyframeikslider)
+    bpy.data.objects[selected_armature].pose.bones["MasterBone"][toggleikslider] = 0
+    bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path=keyframeikslider)
     bpy.ops.pose.select_all(action='DESELECT')
 
     #Copies rotation data to main bone from hidden snap bone
@@ -1770,7 +2016,7 @@ def iktofk():
         addon_utils.disable("space_view3d_copy_attributes")
         addon_utils.check("space_view3d_copy_attributes")
 
-    bpy.context.object.data["SnapVis"] = 0
+    bpy.data.objects[selected_armature].pose.bones["MasterBone"]["SnapVis"] = 0
     bpy.ops.pose.select_all(action='DESELECT')         
 
 def fktoik():
@@ -1780,14 +2026,14 @@ def fktoik():
         addon_utils.check("space_view3d_copy_attributes")
         
     #sets keyframe on every bone
-    bpy.context.object.data["SnapVis"] = 1
+    bpy.data.objects[selected_armature].pose.bones["MasterBone"]["SnapVis"] = 1
     bpy.context.view_layer.objects.active.data.bones[mainfkbone].select = True
     bpy.context.view_layer.objects.active.data.bones[snapfkbone].select = True
     bpy.context.view_layer.objects.active.data.bones[mainikbone].select = True
     bpy.context.view_layer.objects.active.data.bones[snapikbone].select = True
             
     bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
-    keyframeikslider
+    #keyframeikslider
            
     bpy.ops.pose.select_all(action='DESELECT')
     
@@ -1802,8 +2048,8 @@ def fktoik():
     bpy.ops.anim.keyframe_insert_by_name(type="BUILTIN_KSI_LocRot")
 
     #turns on IK contstaint
-    bpy.context.object.data[toggleikslider] = 1
-    bpy.context.object.data.keyframe_insert(data_path=keyframeikslider)
+    bpy.data.objects[selected_armature].pose.bones["MasterBone"][toggleikslider] = 1
+    bpy.data.objects[selected_armature].pose.bones['MasterBone'].keyframe_insert(data_path=keyframeikslider)
     bpy.ops.pose.select_all(action='DESELECT')
 
     #Copies rotation data to main bone from hidden snap bone
@@ -1821,7 +2067,7 @@ def fktoik():
         addon_utils.disable("space_view3d_copy_attributes")
         addon_utils.check("space_view3d_copy_attributes")
 
-    bpy.context.object.data["SnapVis"] = 0
+    bpy.data.objects[selected_armature].pose.bones["MasterBone"]["SnapVis"] = 0
     bpy.ops.pose.select_all(action='DESELECT')
 
 class iktofkRleg(bpy.types.Operator):
@@ -2172,7 +2418,7 @@ class AdvancedTab(bpy.types.Operator):
                     global selected_armature
                     selected_armature = obj.name
 
-            bpy.context.object.data["SnapVis"] = 1
+            bpy.context.active_object.pose.bones["MasterBone"]["SnapVis"] = 1
             bpy.ops.pose.select_all(action='DESELECT')
             bpy.context.view_layer.objects.active.data.bones["LeftLegSnap"].select = True
             bpy.context.view_layer.objects.active.data.bones["LeftFootIKSnap"].select = True
@@ -2203,6 +2449,8 @@ def register():
     bpy.utils.register_class(BoneAdjust)
     
     bpy.utils.register_class(BoneVis)
+    
+    bpy.utils.register_class(BoneShapes)
 
     bpy.utils.register_class(ResetMasterBone)
 
@@ -2221,6 +2469,10 @@ def register():
     bpy.utils.register_class(ResetPivot)
 
     bpy.utils.register_class(AutoRig)
+    
+    bpy.utils.register_class(PropRigA)
+    
+    bpy.utils.register_class(PropRigB)
 
     bpy.utils.register_class(iktofkRleg)
 
@@ -2246,6 +2498,8 @@ def register():
     
     bpy.utils.register_class(AdvancedTab)
     
+    bpy.utils.register_class(Props)
+    
     #bpy.utils.register_class(Naming)
     
     #bpy.utils.register_class(EpicProperties)
@@ -2269,6 +2523,8 @@ def unregister():
     bpy.utils.unregister_class(BoneAdjust)
     
     bpy.utils.unregister_class(BoneVis)
+    
+    bpy.utils.unregister_class(BoneShapes)
 
     bpy.utils.unregister_class(ResetMasterBone)
 
@@ -2287,6 +2543,10 @@ def unregister():
     bpy.utils.unregister_class(ResetPivot)
 
     bpy.utils.unregister_class(AutoRig)
+    
+    bpy.utils.unregister_class(PropRigA)
+    
+    bpy.utils.unregister_class(PropRigB)
 
     bpy.utils.unregister_class(iktofkRleg)
 
@@ -2311,6 +2571,8 @@ def unregister():
     bpy.utils.unregister_class(MainTab)
     
     bpy.utils.unregister_class(AdvancedTab)
+    
+    bpy.utils.unregister_class(Props)
     
     #bpy.utils.unregister_class(Naming)
     
