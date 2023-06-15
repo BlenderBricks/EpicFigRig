@@ -5,9 +5,7 @@ This is the official github for BlenderBricks's EpicFigRig. Shown in the video b
 
 # JabLab Changelog - Blender 3.3 and above
 
-
-https://github.com/BlenderBricks/EpicFigRig/assets/53737901/a31de48e-c4cd-4eb0-9e73-242c857bde56
-
+![Demo](https://github.com/BlenderBricks/EpicFigRig/assets/53737901/7e6743ba-b5d3-4e53-889b-6a0084a11645)
 
 Updates on the 15th of every month!
 
