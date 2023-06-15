@@ -84,8 +84,9 @@ Version 1.1.3
     - 6: Left Leg
     - 7: Right Leg
     - By default props will be rigged to hands (Right hand for Prop A, Left hand for Prop B)
-    - Props can be transformed in Local Y space to allow for different pivot points
-    - As of right now, only one object can be rigged at a time. Looking to change that in future updates
+    - Props can be transformed and rotated in Local Y space to allow for different pivot points
+    - As of right now, only one prop object can be rigged at a time. Looking to change that in future updates
+    - Props on child work, but look a lttle funky and may be a little buggy 
 
 - New Custom Bone Shapes
     - Hook for left hand
