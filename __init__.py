@@ -528,10 +528,14 @@ class Props(bpy.types.Panel):
         row = layout.row()
         row.prop(context.active_object.pose.bones["MasterBone"], '["Prop A Transform"]', slider=True)
         row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop A Rotation"]', slider=True)
+        row = layout.row()
         row.prop(context.active_object.pose.bones["MasterBone"], '["Prop B"]', slider=True)
         row = layout.row()
         row.prop(context.active_object.pose.bones["MasterBone"], '["Prop B Transform"]', slider=True)
         row = layout.row()
+        row.prop(context.active_object.pose.bones["MasterBone"], '["Prop B Rotation"]', slider=True)
+        row = layout.row()        
         row.prop(context.active_object.pose.bones["MasterBone"], '["Back Hip Parent"]', slider=True)
         
         
