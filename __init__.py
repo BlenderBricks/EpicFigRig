@@ -31,11 +31,61 @@ selected_armature = "FinishedRig"
 
 import os
 import bpy, mathutils
-from bpy.props import BoolProperty, IntProperty
-from bpy.types import PropertyGroup, Panel, Scene
+from bpy.props import BoolProperty, IntProperty, PointerProperty, StringProperty, CollectionProperty
+from bpy.types import PropertyGroup, UIList, Panel, Scene
 import addon_utils
 
+
 addon_dirc = os. path .dirname (os .path .realpath (__file__))
+
+#PROPERTY GROUPS
+
+#Epic Smears
+class ListEpicSmears(PropertyGroup):
+    
+    name: StringProperty(
+        name = "name",
+        default = "Frame"
+        )
+    
+    object: PointerProperty(
+        type = bpy.types.Object,
+        name = "Object"
+        )
+    
+    collection: PointerProperty(
+        type = bpy.types.Collection,
+        name = "Collection"
+        )
+    
+    obj_col_toggle: BoolProperty(
+        default = False
+        )
+    
+    icon: StringProperty(
+        name = 'icon',
+        default = 'OBJECT_DATA'
+        )
+    
+    id: IntProperty(
+        name="id"
+        )
+
+#BASE LIST
+class EpicSmearsList(UIList):
+    
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        #custom_icon = ''
+        
+        # Make sure code supports all 3 layout types
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.prop(item, 'name', text=str(item['id']), emboss=False, translate=False, icon=item['icon']) #icon = custom_icon
+            
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="") #icon = custom_icon
+
+
 #PANELS
 
 class EpicFigRigPanel(bpy.types.Panel):
@@ -79,6 +129,7 @@ class EpicFigRigPanel(bpy.types.Panel):
         row.operator('main.tab')
         row.operator('advanced.tab')
         row = layout.row()
+
 
 ######MAIN TAB######
 
@@ -537,8 +588,77 @@ class Props(bpy.types.Panel):
         row.prop(context.active_object.pose.bones["MasterBone"], '["Prop B Rotation"]', slider=True)
         row = layout.row()        
         row.prop(context.active_object.pose.bones["MasterBone"], '["Back Hip Parent"]', slider=True)
+
         
+######SMEARS PANEL######
+
+class EpicSmearsPanel(bpy.types.Panel):
+    
+    bl_label = "Epic Smears"
+    bl_idname = "EPIC_SMEARS_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row = layout.row(align=True)
+    
+        row.operator('epicsmear.add', text='Add EpicSmear')
+        row = layout.row()
+        if context.object.modifiers["GeometryNodes"] is not None:
+            row.prop(context.object.modifiers["GeometryNodes"], '["Input_2"]', text = "")
+
+class EpicSmearsSettings(bpy.types.Panel):
         
+    bl_idname = "EPIC_SMEARS_PT_SETTINGS"
+    bl_label = "Smear Settings:"
+    bl_parent_id = "EPIC_SMEARS_PT_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'EpicFigRig'
+    
+    #CHANGE SOON vvv
+    @classmethod
+    def poll(cls, context):
+        #if bpy.context.object.data["RigTabs"] == 0:
+        if bpy.context.scene.EpicRigTabs == 0:
+            return True
+    
+    
+    
+    def draw(self, context):
+        layout = self.layout
+        obj = context.object
+        
+        row = layout.row()
+        row = layout.row(align=True)
+        
+        #row.label(text="some cool settings")
+        frameobj = row.operator('epicsmear.frameadd', text='Add OBJ')
+        frameobj.type = 'OBJECT'
+        framecol = row.operator('epicsmear.frameadd', text='Add COL')
+        framecol.type = 'COLLECTION'
+        col = layout.column(align=True)
+        row = col.row()
+        row.template_list("EpicSmearsList", "EpicSmears_List", obj, "EpicSmear", obj, "EpicSmear_index")
+        row = row.column(align=True)
+        remover = row.operator('epicsmear.frameremove', text='', icon='REMOVE')
+        moveup = row.operator('epicsmear.framemove', text='', icon='TRIA_UP')
+        moveup.direction = 'UP'
+        movedown = row.operator('epicsmear.framemove', text='', icon='TRIA_DOWN')
+        movedown.direction = 'DOWN'
+
+#        adder = row.operator('meca.add', text='', icon='ADD')
+#        adder.type='PRESET'
+#        remover = row.operator('meca.remove', text='', icon='REMOVE')
+#        remover.type='PRESET'
+#        row.operator('meca.import', text='', icon='FILEBROWSER')
+#        row.operator('meca.export', text='', icon='FILE_TICK')
+        
+        row = layout.row(align=True)
+            
 #BUTTONS 
 
 """#Naming
@@ -2438,6 +2558,156 @@ class AdvancedTab(bpy.types.Operator):
         return {'FINISHED'}
 """
 
+#SMEARS OPERATORS
+
+def EpicSmearResetID(self, context):
+    smear = context.object.EpicSmear
+    size = len(smear)
+    
+    for o in range(size):
+        context.object.EpicSmear[o]['id'] = o
+        if context.object.EpicSmear[o]['obj_col_toggle'] == False:
+            context.object.EpicSmear[o]['object'].name = str(o)
+        else:
+            context.object.EpicSmear[o]['collection'].name = str(o)
+    return {'FINISHED'}
+
+class AddEpicSmear(bpy.types.Operator):
+    bl_label = "Add Epic Smear"
+    bl_idname = 'epicsmear.add'
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        
+        #bpy.context.object.EpicSmear.add()
+        
+        def append_smear():
+            path = addon_dirc + "/Epic_Smear.blend/Object/"
+            object_name = "Epic Smear"
+            bpy.ops.wm.append(filename = object_name, directory = path)
+        
+        append_smear()
+        
+        all_objects = bpy.data.objects
+        smear = all_objects['Epic Smear']
+        
+        cursor = bpy.context.scene.cursor
+        
+        smear.location = cursor.location
+        
+        newCol = bpy.data.collections.new(str(smear.name) + " frames")
+        ogCol = smear.users_collection[0]
+        ogCol.children.link(newCol)
+        
+        smear.EpicSmearFrames = newCol
+        
+        smear.modifiers["GeometryNodes"]["Input_3"] = newCol
+        
+        smear.select_set(True)
+        bpy.context.view_layer.objects.active = smear
+        
+        return {'FINISHED'}
+
+class EpicSmearFrameAdd(bpy.types.Operator):
+    bl_label = "Add a new frame to the list"
+    bl_idname = 'epicsmear.frameadd'
+    bl_options = {'UNDO'}
+    type: bpy.props.EnumProperty(items=(('OBJECT','Object',""),('COLLECTION','Collection',""),))
+    
+    def execute(self, context):
+        obj = context.object
+        smear = context.object.EpicSmear
+        index = context.object.EpicSmear_index
+        
+        if self.type == 'OBJECT':
+            for o in context.selected_objects:
+                if o != obj:
+                    frame = smear.add()
+                    frame['name'] = o.name
+                    frame['icon'] = 'OBJECT_DATAMODE'
+                    frame['id'] = (len(context.object.EpicSmear) -1)
+                    frame['obj_col_toggle'] = False
+                    
+                    for ogcol in o.users_collection:
+                        ogcol.objects.unlink(o)                    
+                    
+                    col = obj.EpicSmearFrames
+                    
+                    col.objects.link(o)
+                    
+                    frame['object'] = o
+                    context.object.EpicSmear_index = (len(context.object.EpicSmear) -1)
+                    
+        
+        if self.type == 'COLLECTION': 
+            o = context.collection
+            frame = smear.add()
+            frame['name'] = o.name
+            frame['icon'] = 'OUTLINER_COLLECTION'
+            frame['id'] = (len(context.object.EpicSmear) -1)
+            frame['obj_col_toggle'] = True
+            
+            col = obj.EpicSmearFrames
+                    
+            col.children.link(o)
+            
+            frame['collection'] = o
+            context.object.EpicSmear_index = (len(context.object.EpicSmear) -1)
+        EpicSmearResetID(self, context)
+        return {'FINISHED'}
+
+class EpicSmearFrameRemove(bpy.types.Operator):
+    bl_label = "Remove a frame from the list"
+    bl_idname = 'epicsmear.frameremove'
+    bl_options = {'UNDO'}
+    
+    def execute(self, context):
+        index = context.object.EpicSmear_index
+        col = context.object.EpicSmearFrames
+        
+        
+        if context.object.EpicSmear[index]['obj_col_toggle'] == False:
+            col.objects.unlink(context.object.EpicSmear[index].object)
+        else:
+            col.children.unlink(context.object.EpicSmear[index].collection)
+        
+        context.object.EpicSmear.remove(index)
+        context.object.EpicSmear_index = min(max(0, index -1), len(context.object.EpicSmear) -1)
+        
+        
+        
+        EpicSmearResetID(self, context)
+        return{'FINISHED'}
+
+class EpicSmearFrameMove(bpy.types.Operator):
+    bl_label = "Move a frame in the list"
+    bl_idname = 'epicsmear.framemove'
+    bl_options = {'UNDO'}
+    direction: bpy.props.EnumProperty(items=(('UP', 'Up', ""),('DOWN', 'Down', ""),))
+    
+    def move_index(self, context):
+        smear = context.object.EpicSmear
+        index = context.object.EpicSmear_index
+        list_length = len(smear) - 1
+        new_index = index + (-1 if self.direction == 'UP' else 1)
+        
+        context.object.EpicSmear_index = max(0, min(new_index, list_length))
+
+    def execute(self, context):
+        smear = context.object.EpicSmear
+        spot = context.object.EpicSmear
+        index = context.object.EpicSmear_index
+        
+        neighbor = index + (-1 if self.direction == 'UP' else 1)
+        if neighbor != -1 and neighbor < (len(smear)):
+            spot.move(neighbor, index)
+            self.move_index(context)
+        EpicSmearResetID(self, context)
+        
+        
+        return{'FINISHED'}
+    
+
 #REGISTRATION
 
 def register():
@@ -2504,6 +2774,22 @@ def register():
     
     bpy.utils.register_class(Props)
     
+    bpy.utils.register_class(EpicSmearsPanel)
+    
+    bpy.utils.register_class(EpicSmearsSettings)
+    
+    bpy.utils.register_class(AddEpicSmear)
+    
+    bpy.utils.register_class(ListEpicSmears)
+    
+    bpy.utils.register_class(EpicSmearsList)
+    
+    bpy.utils.register_class(EpicSmearFrameAdd)
+    
+    bpy.utils.register_class(EpicSmearFrameMove)
+    
+    bpy.utils.register_class(EpicSmearFrameRemove)
+    
     #bpy.utils.register_class(Naming)
     
     #bpy.utils.register_class(EpicProperties)
@@ -2511,8 +2797,15 @@ def register():
     #bpy.types.Scene.EpicRigTabs = IntProperty(name = "EpicRigTabs", default=0, min=0, max=3)
 
     bpy.types.Scene.EpicRigTabs = IntProperty(name = "Epic Rig Tabs", default=0, min=0, max=3)
-
+    
+    bpy.types.Object.EpicSmear = CollectionProperty(type = ListEpicSmears)
+    
+    bpy.types.Object.EpicSmear_index = IntProperty(name = "EpicSmear Index", default = -1)
+    
+    bpy.types.Object.EpicSmearFrames = PointerProperty(type = bpy.types.Collection)
+    
 #    bpy.utils.register_class(resetsnapping)
+
 
 def unregister():
 
@@ -2577,6 +2870,22 @@ def unregister():
     bpy.utils.unregister_class(AdvancedTab)
     
     bpy.utils.unregister_class(Props)
+        
+    bpy.utils.unregister_class(EpicSmearsPanel)
+        
+    bpy.utils.unregister_class(EpicSmearsSettings)
+    
+    bpy.utils.unregister_class(AddEpicSmear)
+    
+    bpy.utils.unregister_class(ListEpicSmears)
+    
+    bpy.utils.unregister_class(EpicSmearsList)
+    
+    bpy.utils.unregister_class(EpicSmearFrameAdd)
+    
+    bpy.utils.unregister_class(EpicSmearFrameMove)
+    
+    bpy.utils.unregister_class(EpicSmearFrameRemove)
     
     #bpy.utils.unregister_class(Naming)
     
