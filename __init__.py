@@ -928,7 +928,12 @@ class SwitchPivottoLeft(bpy.types.Operator):
             
             #turn on armature layer 18
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)
-            bpy.context.object.data.layers[18] = True
+            armature = bpy.context.object
+            if armature.type == 'ARMATURE':
+                collection = armature.data.collections.get("Layer 18")  # Replace with actual name
+                if collection:
+                    collection.is_visible = True
+
             
             #reset IK Foot Loc
             bpy.data.objects[selected_armature].pose.bones["LeftFootIK"].location[0] = 0
@@ -952,7 +957,11 @@ class SwitchPivottoLeft(bpy.types.Operator):
             bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
     
             #turn off layer 18
-            bpy.context.object.data.layers[18] = False
+            armature = bpy.context.object
+            if armature.type == 'ARMATURE':
+                collection = armature.data.collections.get("Layer 18")  # Replace with actual name
+                if collection:
+                    collection.is_visible = False
             
             #insert keyframes
             bpy.ops.pose.select_all(action='SELECT')
@@ -999,7 +1008,11 @@ class SwitchPivottoRight(bpy.types.Operator):
             
             #turn on layer 18
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1) 
-            bpy.context.object.data.layers[18] = True
+            armature = bpy.context.object
+            if armature.type == 'ARMATURE':
+                collection = armature.data.collections.get("Layer 18")  # Replace with actual name
+                if collection:
+                    collection.is_visible = True
             bpy.data.objects[selected_armature].pose.bones["RightFootIK"].location[0] = 0
             bpy.data.objects[selected_armature].pose.bones["RightFootIK"].location[1] = 0
             bpy.data.objects[selected_armature].pose.bones["RightFootIK"].location[2] = 0
@@ -1021,7 +1034,12 @@ class SwitchPivottoRight(bpy.types.Operator):
             bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
     
             #turn off layer 18
-            bpy.context.object.data.layers[18] = False
+            armature = bpy.context.object
+            if armature.type == 'ARMATURE':
+                collection = armature.data.collections.get("Layer 18")  # Replace with actual name
+                if collection:
+                    collection.is_visible = True
+
             
             #insert keyframes
             bpy.ops.pose.select_all(action='SELECT')
