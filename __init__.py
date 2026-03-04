@@ -32,6 +32,43 @@ from bpy.props import BoolProperty
 from bpy.types import PropertyGroup, Panel, Scene
 
 addon_dirc = os. path .dirname (os .path .realpath (__file__))
+
+def _select_bone(armature_obj_name, bone_name, state):
+    """Safely select/deselect a bone, compatible with Blender 5.0+"""
+    try:
+        arm_obj = bpy.data.objects[armature_obj_name]
+        if arm_obj.mode == 'POSE':
+            if bone_name in arm_obj.pose.bones:
+                arm_obj.pose.bones[bone_name].select = state
+        else:
+            # In edit mode use edit_bones (Blender 5.0 API)
+            if bone_name in arm_obj.data.edit_bones:
+                arm_obj.data.edit_bones[bone_name].select = state
+    except Exception:
+        pass
+
+def _keyframe_pose_bones(context, armature_name, frame):
+    """Keyframe selected pose bones location+rotation, compatible with Blender 5.0+"""
+    try:
+        arm_obj = bpy.data.objects[armature_name]
+        for pb in arm_obj.pose.bones:
+            if pb.select:
+                pb.keyframe_insert(data_path="location", frame=frame)
+                pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+                pb.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+    except Exception:
+        pass
+
+def _keyframe_visual_locrot(context, object_name, frame):
+    """Insert visual loc/rot keyframe on a mesh object, compatible with Blender 5.0+"""
+    try:
+        obj = bpy.data.objects[object_name]
+        obj.keyframe_insert(data_path="location", frame=frame)
+        obj.keyframe_insert(data_path="rotation_euler", frame=frame)
+        obj.keyframe_insert(data_path="scale", frame=frame)
+    except Exception:
+        pass
+
 #PANELS
 
 class EpicFigRigPanel(bpy.types.Panel):
@@ -357,26 +394,32 @@ class AutoRig(bpy.types.Operator):
                     child = True
 
 
+        # Snapshot existing objects before append so we can find the newly added rig
+        existing_objects = set(bpy.data.objects.keys())
+
         if child == True:
             append_child()
-            
         else:
             append_normal()
 
-        
+        # Find the newly appended rig by looking for a new ARMATURE object
+        rig = None
+        for obj_name in bpy.data.objects.keys():
+            if obj_name not in existing_objects:
+                obj = bpy.data.objects[obj_name]
+                if obj.type == 'ARMATURE':
+                    rig = obj
+                    break
 
-        """ 
-        if 1 == 1 in selected_objects:
-            append_child()
-        else:
-            append_normal()
-        """
-        
+        # Fallback to 'Rig' if detection failed
+        if rig is None:
+            rig = bpy.data.objects.get('Rig') or bpy.data.objects.get('FinishedRig')
 
+        if rig is None:
+            self.report({'ERROR'}, "Could not find appended rig")
+            return {'CANCELLED'}
 
-        all_objects = bpy.data.objects
-        rig = all_objects['Rig']
-        arma = bpy.data.objects['Rig']
+        arma = rig
         arma_edit = arma.data.edit_bones
 
         
@@ -523,10 +566,15 @@ class AutoRig(bpy.types.Operator):
                 if num in fig.data.name:
                     
                     shortestDist = 100000
+                    handname = 'Right Hand'  # default fallback so line 580 never crashes
                     bpy.context.view_layer.objects.active = rig
                     bpy.ops.object.posemode_toggle()
+                    # Deselect all, then select both hand bones for distance comparison
+                    for pb in rig.pose.bones:
+                        pb.select = False
+                    rig.pose.bones['Left Hand'].select = True
+                    rig.pose.bones['Right Hand'].select = True
                     rig.data.bones.active = rig.data.bones['Left Hand']
-                    rig.data.bones.active = rig.data.bones['Right Hand']
                     here = bpy.context.selected_pose_bones
                     bpy.ops.object.posemode_toggle()
                 
@@ -692,24 +740,24 @@ class ResetMasterBone(bpy.types.Operator):
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1) 
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.data.objects[selected_armature].data.bones["MasterBone"].select = True
-            bpy.data.objects[selected_armature].data.bones["BodyControlBoneIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["LeftFootIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["Center of Mass"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            _select_bone(selected_armature, "MasterBone", True)
+            _select_bone(selected_armature, "BodyControlBoneIK", True)
+            _select_bone(selected_armature, "LeftFootIK", True)
+            _select_bone(selected_armature, "RightFootIK", True)
+            _select_bone(selected_armature, "Center of Mass", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
         #reset hip loc and height
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["MasterBone"].select = True
+            _select_bone(selected_armature, "MasterBone", True)
             hip_height = bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].location[2]
             hip_rot = bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].rotation_quaternion[1] 
             bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].location[2] = 0
             bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].rotation_quaternion[1] = 0
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
         #gets world matrix of the snap bone
             obj = master_bone_snap.id_data
@@ -729,28 +777,28 @@ class ResetMasterBone(bpy.types.Operator):
             bpy.data.objects[selected_armature].pose.bones["Pivot"].location[2] = 0
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
         #reset center of mass rotation
             flip_bone_rotation = bpy.context.object.pose.bones["Center of Mass"].rotation_euler[2]
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Center of Mass"].select = True
+            _select_bone(selected_armature, "Center of Mass", True)
             bpy.context.object.pose.bones["Center of Mass"].rotation_euler[2] = 0
             
         #reset IK Hip Bone 
             ik_distance = bpy.context.object.pose.bones["BodyControlBoneIK"].location[1]
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["BodyControlBoneIK"].select = True
+            _select_bone(selected_armature, "BodyControlBoneIK", True)
             bpy.context.object.pose.bones["BodyControlBoneIK"].location[1] = 0
 
         #reset IK Legs   
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["LeftFootIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
+            _select_bone(selected_armature, "LeftFootIK", True)
+            _select_bone(selected_armature, "RightFootIK", True)
             bpy.ops.transform.translate(value=(0.0, ik_distance, 0.0), orient_type='LOCAL', orient_matrix=((0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)), orient_matrix_type='GLOBAL', constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1.0, use_proportional_connected=False, use_proportional_projected=False, snap=False, snap_target='CLOSEST', snap_point=(0.0, 0.0, 0.0), snap_align=False, snap_normal=(0.0, 0.0, 0.0), gpencil_strokes=False, cursor_transform=False, texture_space=False, remove_on_cancel=False, release_confirm=False, use_accurate=False)
 
         #moves master bone to snap empty
@@ -773,13 +821,13 @@ class ResetMasterBone(bpy.types.Operator):
         #insert locrot
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["BodyControlBoneIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["LeftFootIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
-            bpy.data.objects[selected_armature].data.bones["MasterBone"].select = True
-            bpy.data.objects[selected_armature].data.bones["Center of Mass"].select = True
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "BodyControlBoneIK", True)
+            _select_bone(selected_armature, "LeftFootIK", True)
+            _select_bone(selected_armature, "RightFootIK", True)
+            _select_bone(selected_armature, "MasterBone", True)
+            _select_bone(selected_armature, "Center of Mass", True)
+            _select_bone(selected_armature, "Pivot", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
             #switch custom property
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -831,20 +879,20 @@ class SnapMasterBone(bpy.types.Operator):
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1) 
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["MasterBone"].select = True
-            bpy.data.objects[selected_armature].data.bones["Center of Mass"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "MasterBone", True)
+            _select_bone(selected_armature, "Center of Mass", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
         #reset hip loc and height
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["MasterBone"].select = True
+            _select_bone(selected_armature, "MasterBone", True)
             hip_height = bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].location[2]
             hip_rot = bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].rotation_quaternion[1] 
             bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].location[2] = 0
             bpy.data.objects[selected_armature].pose.bones["BodyControlBoneIK"].rotation_quaternion[1] = 0
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
 
         #gets world matrix of the snap bone
             obj = master_bone_snap.id_data
@@ -860,7 +908,7 @@ class SnapMasterBone(bpy.types.Operator):
             flip_bone_rotation = bpy.context.object.pose.bones["Center of Mass"].rotation_euler[2]
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Center of Mass"].select = True
+            _select_bone(selected_armature, "Center of Mass", True)
             bpy.context.object.pose.bones["Center of Mass"].rotation_euler[2] = 0
             
         #moves master bone to snap empty
@@ -885,9 +933,9 @@ class SnapMasterBone(bpy.types.Operator):
         #insert locrot on flip bone and master bone frame current 
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["MasterBone"].select = True
-            bpy.data.objects[selected_armature].data.bones["Center of Mass"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "MasterBone", True)
+            _select_bone(selected_armature, "Center of Mass", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
             #update scene
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -921,9 +969,9 @@ class SwitchPivottoLeft(bpy.types.Operator):
             #bpy.context.scene.frame_current = bpy.context.scene.frame_current -1
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.data.objects[selected_armature].data.bones["LeftFootIK"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            _select_bone(selected_armature, "LeftFootIK", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
             
             #turn on armature layer 18
@@ -938,12 +986,12 @@ class SwitchPivottoLeft(bpy.types.Operator):
             #Move Pivot to Left Foot
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot lock L"].select = True
+            _select_bone(selected_armature, "Pivot lock L", True)
             #bpy.context.area.ui_type = 'VIEW_3D'
             bpy.ops.view3d.snap_cursor_to_selected()
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
+            _select_bone(selected_armature, "Pivot", True)
             bpy.ops.view3d.snap_selected_to_cursor(use_offset=True)
             #bpy.context.area.ui_type = 'TEXT_EDITOR' 
             
@@ -957,9 +1005,9 @@ class SwitchPivottoLeft(bpy.types.Operator):
             #insert keyframes
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.data.objects[selected_armature].data.bones["LeftFootIK"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            _select_bone(selected_armature, "LeftFootIK", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
             #update scene
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -992,9 +1040,9 @@ class SwitchPivottoRight(bpy.types.Operator):
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            _select_bone(selected_armature, "RightFootIK", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
             
             #turn on layer 18
@@ -1007,12 +1055,12 @@ class SwitchPivottoRight(bpy.types.Operator):
             #Move to Left Foot
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot lock R"].select = True
+            _select_bone(selected_armature, "Pivot lock R", True)
             #bpy.context.area.ui_type = 'VIEW_3D'
             bpy.ops.view3d.snap_cursor_to_selected()
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
+            _select_bone(selected_armature, "Pivot", True)
             bpy.ops.view3d.snap_selected_to_cursor(use_offset=True)
             #bpy.context.area.ui_type = 'TEXT_EDITOR' 
             
@@ -1026,9 +1074,9 @@ class SwitchPivottoRight(bpy.types.Operator):
             #insert keyframes
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            _select_bone(selected_armature, "RightFootIK", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
             #update scene
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -1060,9 +1108,9 @@ class ResetPivot(bpy.types.Operator):
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
             bpy.ops.pose.select_all(action='SELECT')
             bpy.ops.pose.select_all(action='DESELECT')
-            bpy.data.objects[selected_armature].data.bones["Pivot"].select = True
-            #bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "Pivot", True)
+            #_select_bone(selected_armature, "RightFootIK", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             bpy.data.armatures[selected_armature].keyframe_insert(data_path = '["Pivot Slide"]')
             
             bpy.context.scene.frame_set(bpy.context.scene.frame_current +1)            
@@ -1073,8 +1121,8 @@ class ResetPivot(bpy.types.Operator):
             bpy.data.objects[selected_armature].pose.bones["RightFootIK"].location[0] = 0
             bpy.data.objects[selected_armature].pose.bones["RightFootIK"].location[1] = 0
             bpy.data.objects[selected_armature].pose.bones["RightFootIK"].location[2] = 0
-            bpy.data.objects[selected_armature].data.bones["RightFootIK"].select = True
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_LocRot')
+            _select_bone(selected_armature, "RightFootIK", True)
+            _keyframe_pose_bones(context, selected_armature, cur_frame)
             
             #switch custom property
             bpy.data.armatures[selected_armature]["Pivot Slide"] = 0
@@ -1114,22 +1162,22 @@ class SnapRight(bpy.types.Operator):
                     
                 
             #deselects everything
-            bpy.data.objects[selected_armature].data.bones["Right Hand Snap Bone"].select = False
+            armature_obj = bpy.data.objects[selected_armature]
+            if armature_obj.mode == 'POSE' and "Right Hand Snap Bone" in armature_obj.pose.bones:
+                armature_obj.pose.bones["Right Hand Snap Bone"].select = False
             for obj in bpy.context.selected_objects:
                 obj.select_set(False)
             
             #selects adds keyframes to the selected object
             selected_object_keyframe = bpy.data.objects[selected_object].keyframe_insert
             bpy.data.objects[selected_object].select_set(True)
-            obj = bpy.context.window.scene.objects[0]       # sets selected object
-            bpy.context.view_layer.objects.active = obj     # to active object!!
+            bpy.context.view_layer.objects.active = bpy.data.objects[selected_object]  # set mesh as active
             selected_object_keyframe(data_path='location', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='rotation_euler', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='scale', frame = (cur_frame - 1))
             
             #adds and sets up Copy Transforms Constraint
-            o = bpy.context.selected_objects[0]
-            o.constraints.new('COPY_TRANSFORMS')
+            bpy.data.objects[selected_object].constraints.new('COPY_TRANSFORMS')
             
             copy_transform = bpy.data.objects[selected_object].constraints['Copy Transforms']
             target_constraint = bpy.data.objects[selected_armature]
@@ -1148,7 +1196,7 @@ class SnapRight(bpy.types.Operator):
             selected_object_keyframe(data_path='location', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='rotation_euler', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='scale', frame = (cur_frame - 1))
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
+            _keyframe_visual_locrot(context, selected_object, cur_frame)
             copy_transform.influence = 0
             copy_transform.keyframe_insert(data_path = "influence", frame = cur_frame)
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -1190,22 +1238,22 @@ class SnapLeft(bpy.types.Operator):
                     
                 
             #deselects everything
-            bpy.data.objects[selected_armature].data.bones["Left Hand Snap Bone"].select = False
+            armature_obj = bpy.data.objects[selected_armature]
+            if armature_obj.mode == 'POSE' and "Left Hand Snap Bone" in armature_obj.pose.bones:
+                armature_obj.pose.bones["Left Hand Snap Bone"].select = False
             for obj in bpy.context.selected_objects:
                 obj.select_set(False)
             
             #selects adds keyframes to the selected object
             selected_object_keyframe = bpy.data.objects[selected_object].keyframe_insert
             bpy.data.objects[selected_object].select_set(True)
-            obj = bpy.context.window.scene.objects[0]       # sets selected object
-            bpy.context.view_layer.objects.active = obj     # to active object!!
+            bpy.context.view_layer.objects.active = bpy.data.objects[selected_object]  # set mesh as active
             selected_object_keyframe(data_path='location', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='rotation_euler', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='scale', frame = (cur_frame - 1))
             
             #adds and sets up Copy Transforms Constraint
-            o = bpy.context.selected_objects[0]
-            o.constraints.new('COPY_TRANSFORMS')
+            bpy.data.objects[selected_object].constraints.new('COPY_TRANSFORMS')
             
             copy_transform = bpy.data.objects[selected_object].constraints['Copy Transforms']
             target_constraint = bpy.data.objects[selected_armature]
@@ -1224,7 +1272,7 @@ class SnapLeft(bpy.types.Operator):
             selected_object_keyframe(data_path='location', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='rotation_euler', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='scale', frame = (cur_frame - 1))
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
+            _keyframe_visual_locrot(context, selected_object, cur_frame)
             copy_transform.influence = 0
             copy_transform.keyframe_insert(data_path = "influence", frame = cur_frame)
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
@@ -1264,7 +1312,9 @@ class SnapHead(bpy.types.Operator):
                     
                 
             #deselects everything
-            bpy.data.objects[selected_armature].data.bones["Head Accessory"].select = False
+            armature_obj = bpy.data.objects[selected_armature]
+            if armature_obj.mode == 'POSE' and "Head Accessory" in armature_obj.pose.bones:
+                armature_obj.pose.bones["Head Accessory"].select = False
             for obj in bpy.context.selected_objects:
                 obj.select_set(False)
 
@@ -1272,15 +1322,13 @@ class SnapHead(bpy.types.Operator):
             #selects adds keyframes to the selected object
             selected_object_keyframe = bpy.data.objects[selected_object].keyframe_insert
             bpy.data.objects[selected_object].select_set(True)
-            obj = bpy.context.window.scene.objects[0]       # sets selected object
-            bpy.context.view_layer.objects.active = obj     # to active object!!
+            bpy.context.view_layer.objects.active = bpy.data.objects[selected_object]  # set mesh as active
             selected_object_keyframe(data_path='location', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='rotation_euler', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='scale', frame = (cur_frame - 1))
             
             #adds and sets up Copy Transforms Constraint
-            o = bpy.context.selected_objects[0]
-            o.constraints.new('COPY_TRANSFORMS')
+            bpy.data.objects[selected_object].constraints.new('COPY_TRANSFORMS')
             
             copy_transform = bpy.data.objects[selected_object].constraints['Copy Transforms']
             target_constraint = bpy.data.objects[selected_armature]
@@ -1299,7 +1347,7 @@ class SnapHead(bpy.types.Operator):
             selected_object_keyframe(data_path='location', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='rotation_euler', frame = (cur_frame - 1))
             selected_object_keyframe(data_path='scale', frame = (cur_frame - 1))
-            bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
+            _keyframe_visual_locrot(context, selected_object, cur_frame)
             copy_transform.influence = 0
             copy_transform.keyframe_insert(data_path = "influence", frame = cur_frame)
             bpy.context.scene.frame_set(bpy.context.scene.frame_current -1)
