@@ -1,0 +1,11 @@
+# Visual Studio
+.vs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Blender
+*.blend1
+*.blend2
